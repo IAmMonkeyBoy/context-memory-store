@@ -1,0 +1,143 @@
+# Context Memory Store Configuration
+# This file contains the configuration for a single project instance
+
+# Project Information
+project:
+  name: "example-project"
+  description: "Example project for Context Memory Store"
+  version: "1.0.0"
+  created: "2025-07-06T17:00:00Z"
+
+# LLM API Configuration
+llm:
+  # Ollama API endpoint (OpenAI-compatible)
+  api_base: "http://host.docker.internal:11434/v1"
+  # Chat model for conversation and reasoning
+  chat_model: "llama3"
+  # Embedding model for vector generation
+  embedding_model: "mxbai-embed-large"
+  # API key (not required for local Ollama, but kept for compatibility)
+  api_key: ""
+  # Request timeout in seconds
+  timeout: 30
+  # Maximum tokens per request
+  max_tokens: 4096
+
+# Vector Storage Configuration (Qdrant)
+vector_store:
+  # Qdrant connection details
+  host: "localhost"
+  port: 6333
+  # Collection name for this project
+  collection_name: "context-memory"
+  # Vector dimensions (depends on embedding model)
+  vector_size: 1024
+  # Distance metric for similarity search
+  distance: "Cosine"
+  # Path to local vector store backup
+  backup_path: "/project/vector-store.jsonl"
+
+# Graph Storage Configuration (Neo4j)
+graph_store:
+  # Neo4j connection details
+  uri: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "contextmemory"
+  # Database name
+  database: "neo4j"
+  # Path to local graph backup
+  backup_path: "/project/graph.cypher"
+
+# Memory Management Settings
+memory:
+  # Maximum number of documents to keep in memory
+  max_documents: 10000
+  # Maximum age of documents in days (0 = unlimited)
+  max_age_days: 0
+  # Automatic cleanup interval in hours
+  cleanup_interval_hours: 24
+  # Memory summary update interval in minutes
+  summary_interval_minutes: 60
+
+# Document Processing Settings
+processing:
+  # Supported file types for ingestion
+  supported_formats: ["txt", "md", "json", "yaml", "py", "js", "ts", "cs", "go", "rs"]
+  # Maximum file size in MB
+  max_file_size_mb: 50
+  # Text chunking settings
+  chunk_size: 1000
+  chunk_overlap: 200
+  # Enable automatic summarization
+  auto_summarize: true
+  # Minimum document length for processing
+  min_document_length: 100
+
+# API Configuration
+api:
+  # API server settings
+  host: "0.0.0.0"
+  port: 8080
+  # Enable CORS for web access
+  cors_enabled: true
+  # Rate limiting (requests per minute)
+  rate_limit: 100
+  # Request timeout in seconds
+  timeout: 30
+
+# Monitoring and Logging
+monitoring:
+  # Enable Prometheus metrics
+  prometheus_enabled: true
+  # Metrics collection interval in seconds
+  metrics_interval: 15
+  # Log level (DEBUG, INFO, WARN, ERROR)
+  log_level: "INFO"
+  # Log file paths
+  log_file: "/project/logs/system.log"
+  metrics_file: "/project/logs/metrics.json"
+
+# Git Integration Settings
+git:
+  # Auto-commit changes
+  auto_commit: true
+  # Commit message template
+  commit_message_template: "Context Memory Store: {operation} at {timestamp}"
+  # Branch name for memory snapshots
+  snapshot_branch: "memory-snapshots"
+  # Files to include in git tracking
+  tracked_files: ["vector-store.jsonl", "graph.cypher", "summary.md", "config.yaml"]
+
+# Performance Tuning
+performance:
+  # Number of worker threads for processing
+  worker_threads: 4
+  # Batch size for bulk operations
+  batch_size: 100
+  # Connection pool size
+  connection_pool_size: 10
+  # Cache size for frequently accessed data
+  cache_size: 1000
+
+# Security Settings (for production use)
+security:
+  # Enable authentication
+  auth_enabled: false
+  # API key for access control
+  api_key: ""
+  # Enable TLS/SSL
+  tls_enabled: false
+  # Certificate paths (if TLS enabled)
+  cert_file: ""
+  key_file: ""
+
+# Feature Flags
+features:
+  # Enable MCP protocol support
+  mcp_enabled: true
+  # Enable automatic relationship extraction
+  relationship_extraction: true
+  # Enable context-aware summarization
+  contextual_summarization: true
+  # Enable semantic search
+  semantic_search: true

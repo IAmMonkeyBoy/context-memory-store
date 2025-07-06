@@ -1,0 +1,142 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Context Memory Store Dashboard",
+    "tags": ["context-memory", "infrastructure"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=~\"qdrant|neo4j|ollama|prometheus\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Qdrant Collections",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "qdrant_collections_total",
+            "legendFormat": "Collections"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=~\"qdrant|neo4j|ollama\"}",
+            "legendFormat": "{{job}} Memory"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "CPU Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total{job=~\"qdrant|neo4j|ollama\"}[5m])",
+            "legendFormat": "{{job}} CPU"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 5,
+        "title": "Neo4j Store Size",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "neo4j_store_size_bytes",
+            "legendFormat": "Store Size"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "id": 6,
+        "title": "Neo4j Transactions",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(neo4j_transaction_committed_total[5m])",
+            "legendFormat": "Committed"
+          },
+          {
+            "expr": "rate(neo4j_transaction_rollbacks_total[5m])",
+            "legendFormat": "Rollbacks"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
+        }
+      }
+    ]
+  }
+}

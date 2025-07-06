@@ -66,18 +66,63 @@ Runtime: Docker Compose
 
 ---
 
-## ⚙️ Deployment
+## 🚀 Quick Start
 
-Each project instance is deployed via Docker Compose.
+### 1. Clone and Start Infrastructure
+```bash
+git clone <repository-url>
+cd context-memory-store
 
-Key config values are defined in `config.yaml`:
-```yaml
-llm_api_base: http://host.docker.internal:11434/v1
-chat_model: llama3
-embedding_model: mxbai-embed-large
-vector_store_path: /project/vector-store.jsonl
-graph_store_path: /project/graph.cypher
+# Start all services
+docker-compose up -d
+
+# Check service status
+docker-compose ps
 ```
+
+### 2. Configure Ollama Models
+```bash
+# Pull required models
+docker exec -it context-memory-ollama ollama pull llama3
+docker exec -it context-memory-ollama ollama pull mxbai-embed-large
+```
+
+### 3. Access Services
+- **Qdrant Web UI**: http://localhost:6333/dashboard
+- **Neo4j Browser**: http://localhost:7474 (neo4j/contextmemory)
+- **Grafana Dashboard**: http://localhost:3000 (admin/contextmemory)
+- **Prometheus**: http://localhost:9090
+
+### 4. Configure Your Project
+Edit `project/config.yaml` to customize settings for your specific project.
+
+## ⚙️ Configuration
+
+Project-specific configuration is defined in `project/config.yaml`:
+```yaml
+project:
+  name: "your-project"
+  description: "Your project description"
+
+llm:
+  api_base: "http://host.docker.internal:11434/v1"
+  chat_model: "llama3"
+  embedding_model: "mxbai-embed-large"
+
+vector_store:
+  host: "localhost"
+  port: 6333
+  collection_name: "context-memory"
+  backup_path: "/project/vector-store.jsonl"
+
+graph_store:
+  uri: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "contextmemory"
+  backup_path: "/project/graph.cypher"
+```
+
+For detailed configuration options, see [Configuration Documentation](docs/configuration.md).
 
 ---
 
@@ -152,7 +197,38 @@ Prometheus scrapes internal metrics on memory size, request count, etc. Grafana 
 
 ---
 
-## 📦 Future Enhancements (Optional)
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[Documentation Index](docs/index.md)** - Complete feature overview
+- **[Infrastructure Setup](docs/infrastructure.md)** - Docker services and configuration
+- **[Configuration Management](docs/configuration.md)** - Configuration options and examples
+- **[Project Layout](docs/project-layout.md)** - Directory structure and file organization
+
+## 🔄 Development Status
+
+### ✅ Phase 1: Project Foundation & Infrastructure Setup (Completed)
+- Docker Compose with Qdrant, Neo4j, Ollama, Prometheus, Grafana
+- Project directory structure and configuration templates
+- Comprehensive documentation framework
+
+### 🚧 Upcoming Phases
+- Phase 2: Service Integration Testing
+- Phase 3: Data Format Specifications  
+- Phase 4: API Design & OpenAPI Specification
+- Phase 5: .NET 9 Solution Structure
+- Phase 6: Core API Foundation
+- Phase 7: OpenAI Integration
+- Phase 8: Vector Storage Integration
+- Phase 9: Graph Storage Integration
+- Phase 10: Memory Management Services
+- Phase 11: Core Lifecycle API Implementation
+- Phase 12: MCP Protocol Support
+- Phase 13: Prometheus Metrics Integration
+- Phase 14: Testing & Quality Assurance
+
+## 📦 Future Enhancements
 
 - Context reflection and auto-summarization
 - Model auto-selection or load balancing
