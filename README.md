@@ -132,6 +132,7 @@ graph_store_path: /project/graph.cypher
 - No authentication by default (suitable for local-only deployment)
 - Ollama + services assumed to be local (`host.docker.internal`)
 - Minimized blast radius via port binding and isolated networks
+- For guidance on enabling authentication, refer to the [Authentication Setup Documentation](#).
 
 ---
 
