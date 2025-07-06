@@ -66,7 +66,8 @@ The system uses a microservices architecture with:
 - All services designed to run locally via Docker
 
 ### Security Model
-- No authentication by default (local development focused)
+- **Local Development Focus**: This system is designed for local development and research use only
+- No authentication by default (suitable for local-only deployment)
 - Services communicate via `host.docker.internal`
 - Isolated networks and minimal port exposure
 
