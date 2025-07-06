@@ -24,14 +24,14 @@ Each container instance maps 1:1 with a single project, and provides:
                       |
           +-----------+-----------+
           |                       |
-+-------------------+   +------------------+
-|   Vector DB       |   |   Graph DB       |
-|   (Qdrant)        |   |   (Neo4j)        |
-+-------------------+   +------------------+
+ +-------------------+   +------------------+
+ |   Vector DB       |   |   Graph DB       |
+ |   (Qdrant)        |   |   (Neo4j)        |
+ +-------------------+   +------------------+
           |
-+-------------------+
-|   Ollama LLM API  |  ← both chat + embeddings
-+-------------------+
+ +-------------------+
+ |   Ollama LLM API  |  ← both chat + embeddings
+ +-------------------+
 
 Monitoring: Prometheus + Grafana
 Persistence: Git-based snapshots
@@ -58,7 +58,7 @@ Runtime: Docker Compose
 | **Vector DB**     | [Qdrant](https://qdrant.tech) | High-perf, local, file-based |
 | **Graph DB**      | [Neo4j Community](https://neo4j.com/download-center/#community) | Rich relationship queries |
 | **LLM + Embedding** | [Ollama](https://ollama.com) | Local models with [OpenAI-compatible API](https://github.com/ollama/ollama/blob/main/docs/openai.md) |
-| **Embedding Model** | [mxbai-embed-large](https://ollama.com/library/mxbai-embed-large) or [nomic-embed-text](https://ollama.com/library/nomic-embed-text) | Native Ollama support |
+| **Embedding Model** | [mxbai-embed-large](https://ollama.com/library/mxbai-embed-large) | Native Ollama support |
 | **Chat Model**    | e.g. `llama3` via Ollama | Easy to run, configurable |
 | **API Interface** | REST + [MCP](https://github.com/modelcontextprotocol) | Supports external orchestration |
 | **Runtime**       | [Docker Compose](https://docs.docker.com/compose/) | Local dev simplicity |
@@ -128,7 +128,8 @@ graph_store_path: /project/graph.cypher
 
 ## 🛡️ Security
 
-- No authentication by default
+- **Local Development Focus**: This system is designed for local development and research use only
+- No authentication by default (suitable for local-only deployment)
 - Ollama + services assumed to be local (`host.docker.internal`)
 - Minimized blast radius via port binding and isolated networks
 

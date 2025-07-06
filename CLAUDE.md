@@ -62,7 +62,7 @@ The system uses a microservices architecture with:
 ### Configuration
 - Default LLM API base: `http://host.docker.internal:11434/v1`
 - Default chat model: `llama3`
-- Default embedding model: `mxbai-embed-large` or `nomic-embed-text`
+- Default embedding model: `mxbai-embed-large`
 - All services designed to run locally via Docker
 
 ### Security Model
