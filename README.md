@@ -129,8 +129,10 @@ graph_store_path: /project/graph.cypher
 ## 🛡️ Security
 
 - No authentication by default
+  ⚠️ **Warning:** Running the system without authentication in production environments can lead to inadvertent data exposure. It is strongly recommended to enable authentication and secure access to the API endpoints when deploying outside of local or lab setups.
 - Ollama + services assumed to be local (`host.docker.internal`)
 - Minimized blast radius via port binding and isolated networks
+- For guidance on enabling authentication, refer to the [Authentication Setup Documentation](#).
 
 ---
 
