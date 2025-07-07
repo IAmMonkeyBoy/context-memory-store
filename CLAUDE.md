@@ -104,6 +104,7 @@ When Phase 2 is approved, focus on:
 - Always create a new branch before making changes
 - Submit all changes via Pull Requests (PRs)
 - Ensure branch names are descriptive of the changes being made
+- We should not make changes to files in the main branch. If a change is necessary we should create a branch and then make the change.
 
 ### Project Phasing
 - Each of the phases should be a discrete set of changes
