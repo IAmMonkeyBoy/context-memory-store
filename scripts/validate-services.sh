@@ -15,8 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 TIMEOUT=15
 # Neo4j authentication disabled for local development
-GRAFANA_USER="admin"
-GRAFANA_PASS="contextmemory"
+# Grafana authentication disabled for local development (anonymous access enabled)
 
 log_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
@@ -189,17 +188,17 @@ validate_prometheus() {
 validate_grafana() {
     log_info "Validating Grafana functionality..."
     
-    # Test authentication
-    if curl -s --max-time $TIMEOUT -u "$GRAFANA_USER:$GRAFANA_PASS" \
-        "http://localhost:3000/api/user" | grep -q "admin"; then
-        log_success "Grafana authentication working"
+    # Test anonymous access
+    if curl -s --max-time $TIMEOUT \
+        "http://localhost:3000/api/org" | grep -q "Main Org"; then
+        log_success "Grafana anonymous access working"
     else
-        log_error "Grafana authentication failed"
+        log_error "Grafana anonymous access failed"
         return 1
     fi
     
     # Test data sources
-    if curl -s --max-time $TIMEOUT -u "$GRAFANA_USER:$GRAFANA_PASS" \
+    if curl -s --max-time $TIMEOUT \
         "http://localhost:3000/api/datasources" | grep -q "prometheus"; then
         log_success "Grafana data sources configured"
     else
@@ -207,7 +206,7 @@ validate_grafana() {
     fi
     
     # Test dashboard API
-    if curl -s --max-time $TIMEOUT -u "$GRAFANA_USER:$GRAFANA_PASS" \
+    if curl -s --max-time $TIMEOUT \
         "http://localhost:3000/api/search" > /dev/null; then
         log_success "Grafana dashboard API accessible"
     else

@@ -210,7 +210,7 @@ Test scripts respect the following environment variables:
 
 Test scripts use the default POC credentials:
 - Neo4j: No authentication required (disabled for local development)
-- Grafana: `admin` / `contextmemory`
+- Grafana: No authentication required (anonymous access enabled)
 
 ## Security Considerations
 

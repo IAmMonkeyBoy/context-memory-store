@@ -117,7 +117,9 @@ services:
       - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-contextmemory}
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      # GF_SECURITY_ADMIN_PASSWORD disabled for local development
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
