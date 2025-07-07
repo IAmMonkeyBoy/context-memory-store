@@ -1,9 +1,9 @@
-# Test Configuration for Context Memory Store
-# Used for running basic connectivity and health tests
+# Comprehensive Test Configuration for Context Memory Store
+# Used for running infrastructure validation and connectivity tests
 # WARNING: PROOF OF CONCEPT ONLY - NOT FOR PRODUCTION USE
 
 services:
-  # Test service for validation
+  # Main test orchestrator
   test-runner:
     image: curlimages/curl:latest
     container_name: context-memory-test-runner
@@ -20,41 +20,190 @@ services:
       - context-memory-network
     command: |
       sh -c '
-        echo "Starting service connectivity tests..."
+        echo "🧪 Starting comprehensive infrastructure tests..."
+        echo "================================================"
+        echo ""
         
-        # Test Qdrant health
-        echo "Testing Qdrant connectivity..."
-        curl -f http://qdrant:6333/health || exit 1
-        echo "✓ Qdrant is healthy"
+        # Function to test endpoint with retries
+        test_endpoint() {
+          local url=$$1
+          local name=$$2
+          local retries=3
+          local delay=5
+          
+          for i in $$(seq 1 $$retries); do
+            if curl -s --max-time 10 -f "$$url" > /dev/null; then
+              echo "✅ $$name is accessible"
+              return 0
+            fi
+            if [ $$i -lt $$retries ]; then
+              echo "⚠️  $$name not ready, retrying in $${delay}s... ($$i/$$retries)"
+              sleep $$delay
+            fi
+          done
+          echo "❌ $$name failed after $$retries attempts"
+          return 1
+        }
         
-        # Test Neo4j connectivity
-        echo "Testing Neo4j connectivity..."
-        curl -f http://neo4j:7474/ || exit 1
-        echo "✓ Neo4j is accessible"
-        
-        # Test Prometheus connectivity
-        echo "Testing Prometheus connectivity..."
-        curl -f http://prometheus:9090/-/healthy || exit 1
-        echo "✓ Prometheus is healthy"
-        
-        # Test Grafana connectivity
-        echo "Testing Grafana connectivity..."
-        curl -f http://grafana:3000/api/health || exit 1
-        echo "✓ Grafana is accessible"
+        # Test service health endpoints
+        echo "🔍 Testing service health endpoints..."
+        test_endpoint "http://qdrant:6333/health" "Qdrant health" || exit 1
+        test_endpoint "http://neo4j:7474/" "Neo4j web interface" || exit 1
+        test_endpoint "http://prometheus:9090/-/healthy" "Prometheus health" || exit 1
+        test_endpoint "http://grafana:3000/api/health" "Grafana health" || exit 1
+        echo ""
         
         # Test metrics endpoints
-        echo "Testing metrics endpoints..."
-        curl -f http://qdrant:6333/metrics > /dev/null || exit 1
-        echo "✓ Qdrant metrics available"
+        echo "📊 Testing metrics endpoints..."
+        test_endpoint "http://qdrant:6333/metrics" "Qdrant metrics" || exit 1
+        test_endpoint "http://neo4j:2004/metrics" "Neo4j metrics" || exit 1
+        test_endpoint "http://prometheus:9090/metrics" "Prometheus metrics" || exit 1
+        test_endpoint "http://grafana:3000/metrics" "Grafana metrics" || exit 1
+        echo ""
         
-        curl -f http://neo4j:2004/metrics > /dev/null || exit 1
-        echo "✓ Neo4j metrics available"
+        # Test Ollama external connectivity
+        echo "🤖 Testing external Ollama connectivity..."
+        if curl -s --max-time 10 -f "http://host.docker.internal:11434/api/version" > /dev/null; then
+          echo "✅ Ollama external service is accessible"
+          
+          # Test Ollama API endpoints
+          if curl -s --max-time 10 -f "http://host.docker.internal:11434/api/tags" > /dev/null; then
+            echo "✅ Ollama API endpoints responding"
+          else
+            echo "⚠️  Ollama API endpoints not fully responsive"
+          fi
+        else
+          echo "⚠️  Ollama external service not accessible (this is optional for infrastructure testing)"
+        fi
+        echo ""
         
-        curl -f http://grafana:3000/metrics > /dev/null || exit 1
-        echo "✓ Grafana metrics available"
+        # Test Qdrant functionality
+        echo "🔍 Testing Qdrant basic functionality..."
+        # Create a test collection
+        curl -s -X PUT "http://qdrant:6333/collections/test-collection" \
+          -H "Content-Type: application/json" \
+          -d "{\"vectors\": {\"size\": 4, \"distance\": \"Cosine\"}}" > /dev/null
         
-        echo "All service connectivity tests passed!"
+        if [ $$? -eq 0 ]; then
+          echo "✅ Qdrant collection creation successful"
+          
+          # List collections to verify
+          if curl -s "http://qdrant:6333/collections" | grep -q "test-collection"; then
+            echo "✅ Qdrant collection listing working"
+          else
+            echo "⚠️  Qdrant collection not found in listing"
+          fi
+        else
+          echo "❌ Qdrant collection creation failed"
+          exit 1
+        fi
+        echo ""
+        
+        # Test Neo4j functionality  
+        echo "🔗 Testing Neo4j basic functionality..."
+        # Test basic connectivity with authentication
+        NEO4J_USER="neo4j"
+        NEO4J_PASS="contextmemory"
+        
+        # Test Neo4j authentication and basic query
+        if curl -s --max-time 10 -u "$$NEO4J_USER:$$NEO4J_PASS" \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/data/transaction/commit" \
+          -d "{\"statements\":[{\"statement\":\"RETURN 1 as test\"}]}" | grep -q "test"; then
+          echo "✅ Neo4j authentication and basic queries working"
+        else
+          echo "❌ Neo4j authentication or query execution failed"
+          exit 1
+        fi
+        echo ""
+        
+        # Test Prometheus targets
+        echo "📈 Testing Prometheus configuration..."
+        if curl -s "http://prometheus:9090/api/v1/targets" | grep -q "neo4j\|qdrant\|grafana"; then
+          echo "✅ Prometheus has configured targets"
+        else
+          echo "⚠️  Prometheus targets may not be fully configured"
+        fi
+        echo ""
+        
+        # Test Grafana data source connectivity
+        echo "📊 Testing Grafana functionality..."
+        GRAFANA_USER="admin"
+        GRAFANA_PASS="contextmemory"
+        
+        if curl -s --max-time 10 -u "$$GRAFANA_USER:$$GRAFANA_PASS" \
+          "http://grafana:3000/api/datasources" | grep -q "prometheus"; then
+          echo "✅ Grafana can access data sources"
+        else
+          echo "⚠️  Grafana data source configuration may need attention"
+        fi
+        echo ""
+        
+        echo "🎉 All infrastructure tests completed successfully!"
+        echo "================================================"
         exit 0
+      '
+    
+  # Neo4j connectivity validator
+  neo4j-validator:
+    image: curlimages/curl:latest
+    container_name: context-memory-neo4j-validator
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    networks:
+      - context-memory-network
+    profiles:
+      - extended-tests
+    command: |
+      sh -c '
+        echo "🔗 Running extended Neo4j validation..."
+        
+        # Test APOC availability
+        NEO4J_USER="neo4j"
+        NEO4J_PASS="contextmemory"
+        
+        echo "Testing APOC procedures..."
+        if curl -s -u "$$NEO4J_USER:$$NEO4J_PASS" \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/data/transaction/commit" \
+          -d "{\"statements\":[{\"statement\":\"CALL apoc.help(\\\"apoc\\\") YIELD name RETURN count(name) as apoc_procedures\"}]}" | grep -q "apoc_procedures"; then
+          echo "✅ APOC procedures are available"
+        else
+          echo "❌ APOC procedures not available"
+          exit 1
+        fi
+        
+        echo "Neo4j extended validation complete"
+      '
+      
+  # Ollama connectivity validator (only runs if Ollama is available)
+  ollama-validator:
+    image: curlimages/curl:latest
+    container_name: context-memory-ollama-validator
+    networks:
+      - context-memory-network
+    profiles:
+      - extended-tests
+    command: |
+      sh -c '
+        echo "🤖 Running extended Ollama validation..."
+        
+        # Test if Ollama is running and responsive
+        if curl -s --max-time 15 "http://host.docker.internal:11434/api/version"; then
+          echo "✅ Ollama version endpoint accessible"
+          
+          # Test model listing
+          if curl -s --max-time 15 "http://host.docker.internal:11434/api/tags" | grep -q "models"; then
+            echo "✅ Ollama model listing working"
+          else
+            echo "⚠️  No models found in Ollama"
+          fi
+        else
+          echo "⚠️  Ollama service not accessible - skipping extended tests"
+        fi
+        
+        echo "Ollama extended validation complete"
       '
 
   # Include all services from main docker-compose
