@@ -1,0 +1,7 @@
+# Vector Store Data
+# This file contains vector embeddings in JSONL format
+# Each line represents a single vector with metadata
+# Format: {"id": "string", "vector": [float...], "metadata": {"key": "value"}}
+
+# Example entry (remove this comment in production):
+# {"id": "doc-1", "vector": [0.1, 0.2, 0.3], "metadata": {"source": "example.txt", "timestamp": "2025-01-01T00:00:00Z"}}
