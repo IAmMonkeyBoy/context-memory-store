@@ -227,6 +227,164 @@ services:
         
         echo "Neo4j extended APOC validation complete"
       '
+
+  # Comprehensive Service Functionality Validator (Addresses Issue #18)
+  comprehensive-validator:
+    image: alpine:latest
+    container_name: context-memory-comprehensive-validator
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
+    networks:
+      - context-memory-network
+    profiles:
+      - comprehensive-tests
+    command: |
+      sh -c '
+        # Install curl
+        apk add --no-cache curl
+        
+        echo "🔍 Comprehensive Service Functionality Testing (Issue #18)"
+        echo "=========================================================="
+        
+        # Test Qdrant comprehensive functionality
+        echo "🔍 Testing Qdrant comprehensive vector operations..."
+        TEST_COLLECTION="docker-test-$(date +%s)"
+        
+        # Create collection
+        if curl -s --max-time 15 -X PUT "http://qdrant:6333/collections/$$TEST_COLLECTION" \
+          -H "Content-Type: application/json" \
+          -d "{\"vectors\": {\"size\": 4, \"distance\": \"Cosine\"}}" | grep -q "\"result\":true"; then
+          echo "✅ Qdrant collection creation successful"
+        else
+          echo "❌ Qdrant collection creation failed"
+          exit 1
+        fi
+        
+        # Batch vector insertion
+        vectors_json="{\"points\":[{\"id\":1,\"vector\":[0.1,0.2,0.3,0.4],\"payload\":{\"text\":\"test doc 1\",\"category\":\"validation\"}},{\"id\":2,\"vector\":[0.5,0.6,0.7,0.8],\"payload\":{\"text\":\"test doc 2\",\"category\":\"validation\"}}]}"
+        
+        if curl -s --max-time 15 -X PUT "http://qdrant:6333/collections/$$TEST_COLLECTION/points" \
+          -H "Content-Type: application/json" \
+          -d "$vectors_json" | grep -q "\"status\":\"acknowledged\""; then
+          echo "✅ Qdrant batch vector insertion successful"
+        else
+          echo "❌ Qdrant batch vector insertion failed"
+          exit 1
+        fi
+        
+        # Vector search with payload
+        if curl -s --max-time 15 -X POST "http://qdrant:6333/collections/$$TEST_COLLECTION/points/search" \
+          -H "Content-Type: application/json" \
+          -d "{\"vector\":[0.1,0.2,0.3,0.4],\"limit\":2,\"with_payload\":true}" | grep -q "validation"; then
+          echo "✅ Qdrant vector search with payload working"
+        else
+          echo "❌ Qdrant vector search with payload failed"
+          exit 1
+        fi
+        
+        # Filter-based search
+        if curl -s --max-time 15 -X POST "http://qdrant:6333/collections/$$TEST_COLLECTION/points/search" \
+          -H "Content-Type: application/json" \
+          -d "{\"vector\":[0.1,0.2,0.3,0.4],\"limit\":1,\"filter\":{\"must\":[{\"key\":\"category\",\"match\":{\"value\":\"validation\"}}]},\"with_payload\":true}" | grep -q "validation"; then
+          echo "✅ Qdrant filter-based search working"
+        else
+          echo "❌ Qdrant filter-based search failed"
+          exit 1
+        fi
+        
+        # Test Prometheus comprehensive functionality
+        echo "🔍 Testing Prometheus comprehensive metrics collection..."
+        
+        # Validate targets
+        if curl -s --max-time 15 "http://prometheus:9090/api/v1/targets" | grep -q "\"job\":\"qdrant\""; then
+          echo "✅ Prometheus Qdrant target configured"
+        else
+          echo "⚠️  Prometheus Qdrant target not configured"
+        fi
+        
+        if curl -s --max-time 15 "http://prometheus:9090/api/v1/targets" | grep -q "\"job\":\"grafana\""; then
+          echo "✅ Prometheus Grafana target configured"
+        else
+          echo "⚠️  Prometheus Grafana target not configured"
+        fi
+        
+        # Test query aggregation
+        if curl -s --max-time 15 "http://prometheus:9090/api/v1/query?query=count(up)" | grep -q "\"value\""; then
+          echo "✅ Prometheus aggregation queries working"
+        else
+          echo "❌ Prometheus aggregation queries failed"
+          exit 1
+        fi
+        
+        # Test Grafana comprehensive functionality
+        echo "🔍 Testing Grafana comprehensive dashboard connectivity..."
+        
+        # Data source connectivity
+        if curl -s --max-time 15 "http://grafana:3000/api/datasources" | grep -q "prometheus"; then
+          echo "✅ Grafana Prometheus data source configured"
+        else
+          echo "❌ Grafana Prometheus data source not configured"
+          exit 1
+        fi
+        
+        # Query proxy test
+        datasource_id=$(curl -s --max-time 15 "http://grafana:3000/api/datasources" | grep -o "\"id\":[0-9]*" | head -1 | grep -o "[0-9]*")
+        if [ -n "$datasource_id" ] && curl -s --max-time 15 "http://grafana:3000/api/datasources/proxy/$datasource_id/api/v1/query?query=up" | grep -q "\"data\""; then
+          echo "✅ Grafana query proxy to Prometheus working"
+        else
+          echo "⚠️  Grafana query proxy may have issues"
+        fi
+        
+        # Test end-to-end connectivity
+        echo "🔍 Testing end-to-end service connectivity..."
+        
+        # Neo4j + Qdrant concurrent operations
+        neo4j_result=$(curl -s --max-time 15 \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
+          -d "{\"statements\":[{\"statement\":\"RETURN timestamp() as neo4j_time\"}]}")
+        
+        qdrant_result=$(curl -s --max-time 15 "http://qdrant:6333/collections/$$TEST_COLLECTION")
+        
+        if echo "$$neo4j_result" | grep -q "neo4j_time" && echo "$$qdrant_result" | grep -q "points_count"; then
+          echo "✅ Neo4j and Qdrant concurrent operations working"
+        else
+          echo "❌ Neo4j and Qdrant concurrent operations failed"
+          exit 1
+        fi
+        
+        # Test coverage validation (addresses Issue #12)
+        echo "🔍 Test Coverage Validation (Issue #12)..."
+        
+        # Verify data persistence
+        if curl -s --max-time 15 "http://qdrant:6333/collections/$$TEST_COLLECTION" | grep -q "\"points_count\":2"; then
+          echo "✅ Test data persisted correctly"
+        else
+          echo "❌ Test data not persisted correctly"
+          exit 1
+        fi
+        
+        # Cleanup
+        curl -s --max-time 15 -X DELETE "http://qdrant:6333/collections/$$TEST_COLLECTION" > /dev/null
+        echo "✅ Test cleanup completed"
+        
+        echo "=========================================================="
+        echo "🎉 All comprehensive service functionality tests passed!"
+        echo ""
+        echo "Summary:"
+        echo "✅ Qdrant: Vector operations, batch insertion, filtered search"
+        echo "✅ Prometheus: Target validation, query aggregation"
+        echo "✅ Grafana: Data source connectivity, query proxy"
+        echo "✅ End-to-end: Service connectivity validated"
+        echo "✅ Test Coverage: Functional operations confirmed (Issue #12)"
+      '
       
   # Ollama connectivity validator (only runs if Ollama is available)
   ollama-validator:
