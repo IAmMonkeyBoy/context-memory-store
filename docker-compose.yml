@@ -40,27 +40,8 @@ services:
     networks:
       - context-memory-network
 
-  # LLM API - Ollama
-  ollama:
-    image: ollama/ollama:latest
-    container_name: context-memory-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
-      - OLLAMA_ORIGINS=*
-    networks:
-      - context-memory-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # Note: Ollama is expected to be running externally on the host machine
+  # The services will connect to Ollama via host.docker.internal:11434
 
   # Metrics Collection - Prometheus
   prometheus:
@@ -113,11 +94,10 @@ services:
   #     - ASPNETCORE_ENVIRONMENT=Development
   #     - ConnectionStrings__Qdrant=http://qdrant:6333
   #     - ConnectionStrings__Neo4j=bolt://neo4j:7687
-  #     - ConnectionStrings__Ollama=http://ollama:11434
+  #     - ConnectionStrings__Ollama=http://host.docker.internal:11434
   #   depends_on:
   #     - qdrant
   #     - neo4j
-  #     - ollama
   #   networks:
   #     - context-memory-network
 
@@ -131,8 +111,6 @@ volumes:
   neo4j_import:
     driver: local
   neo4j_plugins:
-    driver: local
-  ollama_data:
     driver: local
   prometheus_data:
     driver: local
