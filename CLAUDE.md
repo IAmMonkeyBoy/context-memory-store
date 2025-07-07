@@ -86,6 +86,13 @@ The system uses a microservices architecture with:
 - Documentation in `docs/testing.md`, `docs/comprehensive-testing.md`, `docs/service-validation.md`
 - 100% functional test coverage achieved
 
+### API Design & Documentation
+- Complete API design specification in `docs/api-design.md`
+- Dual-interface architecture: REST API + MCP protocol support
+- OpenAPI 3.0 specification for all endpoints
+- Implementation roadmap with phased approach
+- Local development focus with realistic performance targets
+
 ## Current State
 
 ### ✅ Phase 1 Completed: Project Foundation & Infrastructure Setup
@@ -109,11 +116,26 @@ The system uses a microservices architecture with:
 - Service validation workflows documented for future phases
 - Configuration management consolidated and documented
 
-### 🚧 Phase 3: API Design & OpenAPI Specification
-When Phase 3 is approved, focus on:
-1. Complete API design and documentation
-2. OpenAPI specification for all endpoints
-3. REST API and MCP protocol integration design
+### ✅ Phase 3 Completed: API Design & OpenAPI Specification
+- Complete API design and documentation (Issue #36)
+- OpenAPI specification for all REST endpoints
+- REST API and MCP protocol integration design
+- Implementation roadmap with clear phase boundaries
+- Dual-interface architecture (REST + MCP) specification
+
+**Phase 3 Achievements:**
+- Comprehensive API design documentation in `docs/api-design.md`
+- Core REST API endpoints specified for Phase 4 implementation
+- MCP protocol integration moved to near-term roadmap (Phase 4-6)
+- Performance targets adjusted for local development environment
+- Clear separation of immediate scope vs future enhancements
+- OpenAPI 3.0 specification structure defined
+
+### 🚧 Phase 4: .NET 9 Solution Structure (Next)
+When Phase 4 is approved, focus on:
+1. .NET 9 project structure and dependencies
+2. Core, API, and Infrastructure project organization
+3. Implementation of Phase 3 API design specifications
 
 ### Implementation Technology
 - **Primary Language**: .NET 9 for all application code
@@ -157,3 +179,7 @@ When Phase 3 is approved, focus on:
 - All features must be documented in `docs/` directory
 - Update `docs/index.md` with each new feature
 - Phase completion requires up-to-date documentation
+
+## Workflow Memories
+
+- When updating CLAUDE.md, please review and update README.md to ensure that it remains up to date as well
