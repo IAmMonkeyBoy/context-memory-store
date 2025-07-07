@@ -33,51 +33,48 @@ This directory contains comprehensive documentation for all features and compone
 - ✅ Service validation workflows for future development
 - ✅ Configuration management consolidated and documented
 
-### Phase 3: Data Format Specifications (Coming Soon)
-- Git-friendly file format definitions
-- JSONL, Cypher, and Markdown format specifications
-
-### Phase 4: API Design & OpenAPI Specification (Coming Soon)
+### Phase 3: API Design & OpenAPI Specification (Coming Soon)
 - Complete API design and documentation
 - OpenAPI specification for all endpoints
+- REST API and MCP protocol integration design
 
-### Phase 5: .NET 9 Solution Structure (Coming Soon)
+### Phase 4: .NET 9 Solution Structure (Coming Soon)
 - Project structure and dependencies
 - Core, API, and Infrastructure projects
 
-### Phase 6: Core API Foundation (Coming Soon)
+### Phase 5: Core API Foundation (Coming Soon)
 - ASP.NET Core 9 Web API setup
 - Basic endpoints and middleware
 
-### Phase 7: OpenAI Integration (Coming Soon)
+### Phase 6: OpenAI Integration (Coming Soon)
 - Ollama backend integration via OpenAI API
 - Chat and embedding endpoints
 
-### Phase 8: Vector Storage Integration (Coming Soon)
+### Phase 7: Vector Storage Integration (Coming Soon)
 - Qdrant vector database integration
 - Semantic search functionality
 
-### Phase 9: Graph Storage Integration (Coming Soon)
+### Phase 8: Graph Storage Integration (Coming Soon)
 - Neo4j graph database integration
 - Relationship queries and traversal
 
-### Phase 10: Memory Management Services (Coming Soon)
+### Phase 9: Memory Management Services (Coming Soon)
 - Document ingestion pipeline
 - Context retrieval and assembly
 
-### Phase 11: Core Lifecycle API Implementation (Coming Soon)
+### Phase 10: Core Lifecycle API Implementation (Coming Soon)
 - Start, stop, context, and ingest endpoints
 - Memory serialization and persistence
 
-### Phase 12: MCP Protocol Support (Coming Soon)
+### Phase 11: MCP Protocol Support (Coming Soon)
 - Model Context Protocol implementation
 - Structured tool calls
 
-### Phase 13: Prometheus Metrics Integration (Coming Soon)
+### Phase 12: Prometheus Metrics Integration (Coming Soon)
 - Metrics collection and monitoring
 - Grafana dashboard configuration
 
-### Phase 14: Testing & Quality Assurance (Coming Soon)
+### Phase 13: Testing & Quality Assurance (Coming Soon)
 - Comprehensive testing suite
 - Performance benchmarks
 

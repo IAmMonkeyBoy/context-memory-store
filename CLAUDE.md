@@ -109,17 +109,30 @@ The system uses a microservices architecture with:
 - Service validation workflows documented for future phases
 - Configuration management consolidated and documented
 
-### 🚧 Next Phase: Data Format Specifications
+### 🚧 Phase 3: API Design & OpenAPI Specification
 When Phase 3 is approved, focus on:
-1. Git-friendly file format definitions
-2. JSONL, Cypher, and Markdown format specifications
-3. Data persistence and serialization standards
+1. Complete API design and documentation
+2. OpenAPI specification for all endpoints
+3. REST API and MCP protocol integration design
 
 ### Implementation Technology
 - **Primary Language**: .NET 9 for all application code
 - **OpenAI Integration**: Use OpenAI .NET SDK pointing to Ollama (not HttpClient)
 - **Git Integration**: External to the store - focus on git-friendly file formats
 - **File Formats**: JSONL, Cypher, Markdown, YAML for git compatibility
+
+## Future Enhancements
+
+### Data Format Specifications
+- Git-friendly file format definitions
+- JSONL, Cypher, and Markdown format specifications
+- Data persistence and serialization standards
+
+### Additional Features
+- Context reflection and auto-summarization
+- Model auto-selection or load balancing
+- Remote syncing via GitHub Actions
+- Web UI for browsing vector/graph memory
 
 ## Development Workflow
 
