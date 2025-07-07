@@ -179,11 +179,16 @@ For detailed configuration options, see [Configuration Documentation](docs/confi
 
 ## 🛡️ Security
 
-- **Local Development Focus**: This system is designed for local development and research use only
-- No authentication by default (suitable for local-only deployment)
-- Ollama + services assumed to be local (`host.docker.internal`)
-- Minimized blast radius via port binding and isolated networks
-- For guidance on enabling authentication, refer to the [Authentication Setup Documentation](#).
+⚠️ **PROOF OF CONCEPT ONLY**: This system intentionally uses insecure configurations for development ease.
+
+- **Local Development Focus**: Designed exclusively for local development and research
+- **Authentication Disabled**: All services (Neo4j, Grafana) configured without authentication
+- **Unrestricted Access**: APOC procedures and admin privileges enabled for full functionality testing
+- **Development Credentials**: Simple, default passwords used where authentication cannot be disabled
+
+**📋 See [SECURITY.md](SECURITY.md) for complete documentation of intentional security decisions.**
+
+🚫 **NOT SUITABLE FOR PRODUCTION** - See SECURITY.md for production migration guidelines.
 
 ---
 

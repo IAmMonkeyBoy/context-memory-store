@@ -1,6 +1,11 @@
 # Comprehensive Test Configuration for Context Memory Store
 # Used for running infrastructure validation and connectivity tests
-# WARNING: PROOF OF CONCEPT ONLY - NOT FOR PRODUCTION USE
+# 
+# ⚠️ PROOF OF CONCEPT ONLY - NOT FOR PRODUCTION USE
+# 
+# SECURITY NOTE: This test configuration inherits the same intentional
+# security decisions as the main system (disabled auth, unrestricted access).
+# See SECURITY.md for complete documentation of these deliberate choices.
 
 services:
   # Main test orchestrator

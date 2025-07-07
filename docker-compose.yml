@@ -1,7 +1,26 @@
 # Context Memory Store - Docker Compose Configuration
-# WARNING: This is a PROOF OF CONCEPT for local development only
-# NOT suitable for production use - contains default passwords and no authentication
-# Designed for local research and laboratory environments
+# 
+# ⚠️  PROOF OF CONCEPT SECURITY NOTICE ⚠️
+# 
+# This configuration is INTENTIONALLY designed for local development and research only.
+# The following security decisions are DELIBERATE for ease of development:
+#
+# 🔓 INTENTIONAL SECURITY CHOICES (DO NOT CHANGE):
+# - Authentication DISABLED on all services (NEO4J_AUTH=none, Grafana anonymous access)
+# - APOC procedures UNRESTRICTED (apoc.* allowed) for full graph functionality testing
+# - Plugin download WITHOUT checksum verification for simplicity
+# - Default credentials where required for rapid prototyping
+# - No network segmentation or access controls
+# - Permissive container configurations
+#
+# 🚫 NOT SUITABLE FOR PRODUCTION - these choices create significant security risks:
+# - Unauthorized database access, data exposure, privilege escalation
+# - File system access and OS command execution through APOC
+# - Supply chain attack susceptibility 
+# - Container escape potential
+#
+# This is a RESEARCH TOOL for local AI coding agent development.
+# All services assumed to run in isolated local environment only.
 
 services:
   # Vector Database - Qdrant
@@ -35,6 +54,7 @@ services:
       - context-memory-network
 
   # APOC Plugin Downloader
+  # SECURITY NOTE: Downloads plugin without checksum verification - intentional for POC simplicity
   neo4j-apoc-downloader:
     image: alpine:latest
     container_name: context-memory-neo4j-apoc-downloader
@@ -45,6 +65,7 @@ services:
         apk add --no-cache curl
         if [ ! -f /plugins/apoc-5.15.0-core.jar ]; then
           echo "Downloading APOC plugin..."
+          # NOTE: No checksum verification - acceptable for local POC development
           curl -L -o /tmp/apoc-5.15.0-core.jar https://github.com/neo4j/apoc/releases/download/5.15.0/apoc-5.15.0-core.jar
           cp /tmp/apoc-5.15.0-core.jar /plugins/apoc-5.15.0-core.jar
           chmod 644 /plugins/apoc-5.15.0-core.jar
@@ -71,9 +92,10 @@ services:
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
     environment:
-      - NEO4J_AUTH=none
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-      - NEO4J_dbms_security_procedures_allowlist=apoc.*
+      # SECURITY DECISIONS FOR POC (INTENTIONAL - DO NOT CHANGE):
+      - NEO4J_AUTH=none  # Authentication disabled for development ease
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*  # All APOC procedures allowed for testing
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*  # Unrestricted access for research purposes
     healthcheck:
       test: ["CMD", "neo4j", "status"]
       interval: 30s
@@ -140,8 +162,9 @@ services:
       - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
     environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      # SECURITY DECISIONS FOR POC (INTENTIONAL - DO NOT CHANGE):
+      - GF_AUTH_ANONYMOUS_ENABLED=true  # Anonymous access for development ease
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin  # Full admin access without authentication
       # GF_SECURITY_ADMIN_PASSWORD disabled for local development
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
