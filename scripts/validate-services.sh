@@ -96,7 +96,7 @@ validate_neo4j() {
     log_info "Validating Neo4j functionality..."
     
     # Test basic authentication and connectivity
-    if curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
+    if curl -s --max-time $TIMEOUT \
         -H "Content-Type: application/json" \
         -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d '{"statements":[{"statement":"RETURN 1 as test"}]}' | grep -q "test"; then
@@ -107,7 +107,7 @@ validate_neo4j() {
     fi
     
     # Test APOC availability
-    if curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
+    if curl -s --max-time $TIMEOUT \
         -H "Content-Type: application/json" \
         -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d '{"statements":[{"statement":"CALL apoc.help(\"apoc\") YIELD name RETURN count(name) as apoc_procedures"}]}' | grep -q "apoc_procedures"; then
