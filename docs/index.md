@@ -7,6 +7,7 @@ This directory contains comprehensive documentation for all features and compone
 - [Infrastructure Setup](infrastructure.md) - Docker Compose services and configuration
 - [Configuration Management](configuration.md) - System configuration and options
 - [Project Layout](project-layout.md) - Directory structure and file organization
+- [Testing Framework](testing.md) - Comprehensive testing and validation tools
 
 ## Features by Phase
 
