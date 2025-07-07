@@ -133,7 +133,7 @@ Access Grafana at http://localhost:3000 and login with:
 
 1. **Port Conflicts**: Ensure ports 6333, 6334, 7474, 7687, 2004, 9090, 3000 are available (11434 for Ollama on host)
 2. **Ollama Connection**: Ensure Ollama is running on host machine and accessible via host.docker.internal
-3. **Neo4j APOC**: APOC plugin is automatically installed via environment variables
+3. **Neo4j APOC**: APOC plugin is automatically installed and configured via neo4j.conf
 4. **Memory Issues**: Adjust memory limits in service configurations
 5. **Permissions**: Ensure Docker has proper permissions for volume mounts
 

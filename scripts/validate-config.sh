@@ -56,7 +56,7 @@ echo ""
 echo "🚀 Validating Docker Compose configuration..."
 
 # Validate docker-compose file
-docker-compose -f docker-compose.yml config > /dev/null 2>&1
+docker compose -f docker-compose.yml config > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "✓ docker-compose.yml is valid"
 else

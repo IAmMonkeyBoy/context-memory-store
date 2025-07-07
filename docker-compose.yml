@@ -52,8 +52,6 @@ services:
     environment:
       - NEO4J_AUTH=${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:-contextmemory}
       - NEO4J_PLUGINS=apoc
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-      - NEO4J_dbms_security_procedures_allowlist=apoc.*
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7474/"]
       interval: 30s
