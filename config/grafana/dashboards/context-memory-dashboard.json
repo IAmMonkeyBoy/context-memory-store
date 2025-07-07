@@ -1,7 +1,6 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "Context Memory Store Dashboard",
+  "id": null,
+  "title": "Context Memory Store Dashboard",
     "tags": ["context-memory", "infrastructure"],
     "timezone": "browser",
     "schemaVersion": 27,
@@ -138,5 +137,4 @@
         }
       }
     ]
-  }
 }
