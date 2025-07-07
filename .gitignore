@@ -68,6 +68,11 @@ nunit-*.xml
 *.swo
 *~
 
+# Development Tools - Local configurations
+.vscode/settings.json
+*.code-workspace
+docker-compose.*.local.yml
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -89,3 +94,16 @@ project/logs/*.log
 *.tmp
 *.temp
 *.cache
+
+# Claude Code - Local settings and cache
+.claude/settings.local.json
+.claude/*.local.*
+.claude/cache/
+
+# Project Runtime Data
+project/data/
+project/backups/
+project/exports/
+*.backup
+*.bak
+*.orig
