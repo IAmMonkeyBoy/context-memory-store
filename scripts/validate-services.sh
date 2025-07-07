@@ -110,9 +110,32 @@ validate_neo4j() {
         -H "Content-Type: application/json" \
         -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d '{"statements":[{"statement":"CALL apoc.help(\"apoc\") YIELD name RETURN count(name) as apoc_procedures"}]}' | grep -q "apoc_procedures"; then
-        log_success "Neo4j APOC procedures are available"
+        
+        local apoc_response=$(curl -s --max-time $TIMEOUT \
+            -H "Content-Type: application/json" \
+            -X POST "http://localhost:7474/db/neo4j/tx/commit" \
+            -d '{"statements":[{"statement":"CALL apoc.help(\"apoc\") YIELD name RETURN count(name) as apoc_procedures"}]}')
+        
+        local apoc_count=$(echo "$apoc_response" | grep -o '"row":\[[0-9]*\]' | grep -o '[0-9]*' | head -1)
+        
+        if [ -n "$apoc_count" ] && [ "$apoc_count" -gt 400 ]; then
+            log_success "Neo4j APOC procedures are available ($apoc_count procedures)"
+        else
+            log_success "Neo4j APOC procedures are available"
+        fi
     else
         log_error "Neo4j APOC procedures not available"
+        return 1
+    fi
+    
+    # Test APOC utility functions
+    if curl -s --max-time $TIMEOUT \
+        -H "Content-Type: application/json" \
+        -X POST "http://localhost:7474/db/neo4j/tx/commit" \
+        -d '{"statements":[{"statement":"RETURN apoc.version() as version"}]}' | grep -q "version"; then
+        log_success "Neo4j APOC utility functions working"
+    else
+        log_error "Neo4j APOC utility functions not working"
         return 1
     fi
     

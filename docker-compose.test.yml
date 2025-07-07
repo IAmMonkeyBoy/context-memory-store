@@ -101,18 +101,16 @@ services:
         
         # Test Neo4j functionality  
         echo "🔗 Testing Neo4j basic functionality..."
-        # Test basic connectivity with authentication
-        NEO4J_USER="neo4j"
-        NEO4J_PASS="contextmemory"
+        # Neo4j authentication disabled for local development
         
-        # Test Neo4j authentication and basic query
-        if curl -s --max-time 10 -u "$$NEO4J_USER:$$NEO4J_PASS" \
+        # Test Neo4j basic query (no auth)
+        if curl -s --max-time 10 \
           -H "Content-Type: application/json" \
-          -X POST "http://neo4j:7474/db/data/transaction/commit" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
           -d "{\"statements\":[{\"statement\":\"RETURN 1 as test\"}]}" | grep -q "test"; then
-          echo "✅ Neo4j authentication and basic queries working"
+          echo "✅ Neo4j basic queries working"
         else
-          echo "❌ Neo4j authentication or query execution failed"
+          echo "❌ Neo4j query execution failed"
           exit 1
         fi
         echo ""
@@ -144,7 +142,7 @@ services:
         exit 0
       '
     
-  # Neo4j connectivity validator
+  # Neo4j APOC and connectivity validator
   neo4j-validator:
     image: curlimages/curl:latest
     container_name: context-memory-neo4j-validator
@@ -157,16 +155,13 @@ services:
       - extended-tests
     command: |
       sh -c '
-        echo "🔗 Running extended Neo4j validation..."
+        echo "🔗 Running extended Neo4j APOC validation..."
         
-        # Test APOC availability
-        NEO4J_USER="neo4j"
-        NEO4J_PASS="contextmemory"
-        
-        echo "Testing APOC procedures..."
-        if curl -s -u "$$NEO4J_USER:$$NEO4J_PASS" \
+        # Test APOC availability (no auth - disabled for local development)
+        echo "Testing APOC procedures availability..."
+        if curl -s \
           -H "Content-Type: application/json" \
-          -X POST "http://neo4j:7474/db/data/transaction/commit" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
           -d "{\"statements\":[{\"statement\":\"CALL apoc.help(\\\"apoc\\\") YIELD name RETURN count(name) as apoc_procedures\"}]}" | grep -q "apoc_procedures"; then
           echo "✅ APOC procedures are available"
         else
@@ -174,7 +169,58 @@ services:
           exit 1
         fi
         
-        echo "Neo4j extended validation complete"
+        # Test specific APOC functionality
+        echo "Testing APOC utility functions..."
+        if curl -s \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
+          -d "{\"statements\":[{\"statement\":\"RETURN apoc.version() as version\"}]}" | grep -q "version"; then
+          echo "✅ APOC utility functions working"
+        else
+          echo "❌ APOC utility functions not working"
+          exit 1
+        fi
+        
+        # Test APOC graph operations
+        echo "Testing APOC graph operations..."
+        test_label="APOCTest$(date +%s)"
+        
+        # Create test data using APOC
+        if curl -s \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
+          -d "{\"statements\":[{\"statement\":\"CALL apoc.create.node([\\\"$$test_label\\\"], {name: \\\"test\\\", created: timestamp()}) YIELD node RETURN node.name as name\"}]}" | grep -q "test"; then
+          echo "✅ APOC node creation working"
+        else
+          echo "❌ APOC node creation failed"
+          exit 1
+        fi
+        
+        # Test APOC path operations
+        if curl -s \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
+          -d "{\"statements\":[{\"statement\":\"MATCH (n:$$test_label) CALL apoc.path.expand(n, null, null, 1, 1) YIELD path RETURN count(path) as path_count\"}]}" | grep -q "path_count"; then
+          echo "✅ APOC path operations working"
+        else
+          echo "⚠️  APOC path operations may not be working (this is expected for single nodes)"
+        fi
+        
+        # Cleanup test data
+        curl -s \
+          -H "Content-Type: application/json" \
+          -X POST "http://neo4j:7474/db/neo4j/tx/commit" \
+          -d "{\"statements\":[{\"statement\":\"MATCH (n:$$test_label) DELETE n\"}]}" > /dev/null
+        
+        # Test metrics endpoint (if configured)
+        echo "Testing Neo4j metrics endpoint..."
+        if curl -s --max-time 5 "http://neo4j:2004/metrics" | grep -q "neo4j"; then
+          echo "✅ Neo4j metrics endpoint working"
+        else
+          echo "⚠️  Neo4j metrics endpoint not configured or not working"
+        fi
+        
+        echo "Neo4j extended APOC validation complete"
       '
       
   # Ollama connectivity validator (only runs if Ollama is available)
@@ -211,6 +257,11 @@ services:
     extends:
       file: docker-compose.yml
       service: qdrant
+
+  neo4j-apoc-downloader:
+    extends:
+      file: docker-compose.yml
+      service: neo4j-apoc-downloader
 
   neo4j:
     extends:

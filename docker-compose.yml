@@ -34,6 +34,28 @@ services:
     networks:
       - context-memory-network
 
+  # APOC Plugin Downloader
+  neo4j-apoc-downloader:
+    image: alpine:latest
+    container_name: context-memory-neo4j-apoc-downloader
+    volumes:
+      - neo4j_plugins:/plugins
+    command: |
+      sh -c '
+        apk add --no-cache curl
+        if [ ! -f /plugins/apoc-5.15.0-core.jar ]; then
+          echo "Downloading APOC plugin..."
+          curl -L -o /tmp/apoc-5.15.0-core.jar https://github.com/neo4j/apoc/releases/download/5.15.0/apoc-5.15.0-core.jar
+          cp /tmp/apoc-5.15.0-core.jar /plugins/apoc-5.15.0-core.jar
+          chmod 644 /plugins/apoc-5.15.0-core.jar
+          echo "APOC plugin downloaded successfully"
+        else
+          echo "APOC plugin already exists"
+        fi
+      '
+    networks:
+      - context-memory-network
+
   # Graph Database - Neo4j
   neo4j:
     image: neo4j:5.15-community
@@ -50,14 +72,15 @@ services:
       - neo4j_plugins:/plugins
     environment:
       - NEO4J_AUTH=none
-      - NEO4J_PLUGINS=apoc
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7474/"]
+      test: ["CMD", "neo4j", "status"]
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - neo4j-apoc-downloader
     deploy:
       resources:
         limits:
