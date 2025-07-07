@@ -1,0 +1,96 @@
+# Test Configuration for Context Memory Store
+# Used for running basic connectivity and health tests
+# WARNING: PROOF OF CONCEPT ONLY - NOT FOR PRODUCTION USE
+
+services:
+  # Test service for validation
+  test-runner:
+    image: curlimages/curl:latest
+    container_name: context-memory-test-runner
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
+    networks:
+      - context-memory-network
+    command: |
+      sh -c '
+        echo "Starting service connectivity tests..."
+        
+        # Test Qdrant health
+        echo "Testing Qdrant connectivity..."
+        curl -f http://qdrant:6333/health || exit 1
+        echo "✓ Qdrant is healthy"
+        
+        # Test Neo4j connectivity
+        echo "Testing Neo4j connectivity..."
+        curl -f http://neo4j:7474/ || exit 1
+        echo "✓ Neo4j is accessible"
+        
+        # Test Prometheus connectivity
+        echo "Testing Prometheus connectivity..."
+        curl -f http://prometheus:9090/-/healthy || exit 1
+        echo "✓ Prometheus is healthy"
+        
+        # Test Grafana connectivity
+        echo "Testing Grafana connectivity..."
+        curl -f http://grafana:3000/api/health || exit 1
+        echo "✓ Grafana is accessible"
+        
+        # Test metrics endpoints
+        echo "Testing metrics endpoints..."
+        curl -f http://qdrant:6333/metrics > /dev/null || exit 1
+        echo "✓ Qdrant metrics available"
+        
+        curl -f http://neo4j:2004/metrics > /dev/null || exit 1
+        echo "✓ Neo4j metrics available"
+        
+        curl -f http://grafana:3000/metrics > /dev/null || exit 1
+        echo "✓ Grafana metrics available"
+        
+        echo "All service connectivity tests passed!"
+        exit 0
+      '
+
+  # Include all services from main docker-compose
+  qdrant:
+    extends:
+      file: docker-compose.yml
+      service: qdrant
+
+  neo4j:
+    extends:
+      file: docker-compose.yml
+      service: neo4j
+
+  prometheus:
+    extends:
+      file: docker-compose.yml
+      service: prometheus
+
+  grafana:
+    extends:
+      file: docker-compose.yml
+      service: grafana
+
+networks:
+  context-memory-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  qdrant_data:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:
+  prometheus_data:
+  grafana_data:

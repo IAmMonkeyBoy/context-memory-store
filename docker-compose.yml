@@ -48,6 +48,7 @@ services:
       - neo4j_logs:/logs
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
+      - ./config/neo4j.conf:/var/lib/neo4j/conf/neo4j.conf:ro
     environment:
       - NEO4J_AUTH=${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:-contextmemory}
       - NEO4J_PLUGINS=apoc
