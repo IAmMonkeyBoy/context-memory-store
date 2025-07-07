@@ -94,8 +94,8 @@ services:
     environment:
       # SECURITY DECISIONS FOR POC (INTENTIONAL - DO NOT CHANGE):
       - NEO4J_AUTH=none  # Authentication disabled for development ease
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*  # All APOC procedures allowed for testing
-      - NEO4J_dbms_security_procedures_allowlist=apoc.*  # Unrestricted access for research purposes
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*
     healthcheck:
       test: ["CMD", "neo4j", "status"]
       interval: 30s

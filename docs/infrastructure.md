@@ -23,11 +23,15 @@ The Context Memory Store uses a microservices architecture with the following co
 
 ### Neo4j (Graph Database)
 - **Image**: `neo4j:5.15-community`
+- **Version Requirements**: Neo4j 5.15+ (tested with 5.15 Community Edition)
 - **Ports**: 7474 (HTTP), 7687 (Bolt), 2004 (Metrics)
 - **Purpose**: Stores relationships and graph data
 - **Configuration**: `/config/neo4j.conf` (mounted volume)
 - **Data**: Persistent volumes for data, logs, import, plugins
 - **Credentials**: Configurable via NEO4J_USERNAME/NEO4J_PASSWORD
+- **APOC Plugin**: 5.15.0-core (automatically downloaded)
+- **Memory Settings**: Default settings in use (parameterization requires Neo4j 5.15 environment variable syntax investigation)
+- **APOC Configuration**: Consolidated into docker-compose.yml environment variables
 
 ### Ollama (External LLM API)
 - **Installation**: Must be installed and running on host machine
