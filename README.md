@@ -96,7 +96,7 @@ ollama pull mxbai-embed-large
 ### 3. Access Services
 - **Qdrant Web UI**: http://localhost:6333/dashboard
 - **Neo4j Browser**: http://localhost:7474 (no authentication required)
-- **Grafana Dashboard**: http://localhost:3000 (admin/contextmemory)
+- **Grafana Dashboard**: http://localhost:3000 (no authentication required)
 - **Prometheus**: http://localhost:9090
 
 ### 4. Configure Your Project
