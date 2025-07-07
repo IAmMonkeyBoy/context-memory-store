@@ -62,8 +62,10 @@ The system uses a microservices architecture with:
 ### Configuration
 - Default LLM API base: `http://host.docker.internal:11434/v1`
 - Default chat model: `llama3`
-- Default embedding model: `mxbai-embed-large`
+- Default embedding model: `mxbai-embed-large` (768 dimensions)
 - All services designed to run locally via Docker
+- Neo4j with APOC plugin for extended graph procedures
+- External Ollama service architecture (not containerized)
 
 ### Security Model
 - **PROOF OF CONCEPT ONLY**: This system is designed for local development, research, and laboratory environments only
@@ -77,6 +79,10 @@ The system uses a microservices architecture with:
 - Prometheus metrics for memory size, request count, token usage
 - Grafana dashboards for visualization
 - System logs in `/project/logs/`
+
+### Testing Framework
+- Comprehensive testing infrastructure with `test.sh`, `scripts/health-check.sh`, and `scripts/validate-services.sh`
+- Documentation in `docs/testing.md`
 
 ## Current State
 
@@ -105,6 +111,7 @@ When Phase 2 is approved, focus on:
 - Submit all changes via Pull Requests (PRs)
 - Ensure branch names are descriptive of the changes being made
 - We should not make changes to files in the main branch. If a change is necessary we should create a branch and then make the change.
+- When you start working on any code change that will lead to a new branch and eventually a pull request, create and push the branch and create the pull request as a draft.
 
 ### Project Phasing
 - Each of the phases should be a discrete set of changes

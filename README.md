@@ -58,7 +58,7 @@ Runtime: Docker Compose
 | **Vector DB**     | [Qdrant](https://qdrant.tech) | High-perf, local, file-based |
 | **Graph DB**      | [Neo4j Community](https://neo4j.com/download-center/#community) | Rich relationship queries |
 | **LLM + Embedding** | [Ollama](https://ollama.com) | Local models with [OpenAI-compatible API](https://github.com/ollama/ollama/blob/main/docs/openai.md) |
-| **Embedding Model** | [mxbai-embed-large](https://ollama.com/library/mxbai-embed-large) | Native Ollama support |
+| **Embedding Model** | [mxbai-embed-large](https://ollama.com/library/mxbai-embed-large) | Native Ollama support (768 dimensions) |
 | **Chat Model**    | e.g. `llama3` via Ollama | Easy to run, configurable |
 | **API Interface** | REST + [MCP](https://github.com/modelcontextprotocol) | Supports external orchestration |
 | **Runtime**       | [Docker Compose](https://docs.docker.com/compose/) | Local dev simplicity |
@@ -80,11 +80,17 @@ docker-compose up -d
 docker-compose ps
 ```
 
-### 2. Configure Ollama Models
+### 2. Install and Configure Ollama (External Service)
 ```bash
+# Install Ollama on your host machine
+# Visit: https://ollama.com/download
+
+# Start Ollama service
+ollama serve
+
 # Pull required models
-docker exec -it context-memory-ollama ollama pull llama3
-docker exec -it context-memory-ollama ollama pull mxbai-embed-large
+ollama pull llama3
+ollama pull mxbai-embed-large
 ```
 
 ### 3. Access Services
@@ -205,6 +211,7 @@ Comprehensive documentation is available in the `docs/` directory:
 - **[Infrastructure Setup](docs/infrastructure.md)** - Docker services and configuration
 - **[Configuration Management](docs/configuration.md)** - Configuration options and examples
 - **[Project Layout](docs/project-layout.md)** - Directory structure and file organization
+- **[Testing Framework](docs/testing.md)** - Comprehensive testing and validation procedures
 
 ## 🔄 Development Status
 
