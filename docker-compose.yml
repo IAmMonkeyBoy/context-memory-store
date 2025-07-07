@@ -1,3 +1,8 @@
+# Context Memory Store - Docker Compose Configuration
+# WARNING: This is a PROOF OF CONCEPT for local development only
+# NOT suitable for production use - contains default passwords and no authentication
+# Designed for local research and laboratory environments
+
 services:
   # Vector Database - Qdrant
   qdrant:
@@ -43,9 +48,10 @@ services:
       - neo4j_logs:/logs
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
+      - ./config/neo4j.conf:/var/lib/neo4j/conf/neo4j.conf:ro
     environment:
       - NEO4J_AUTH=${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:-contextmemory}
-      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_PLUGINS=apoc
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*
     healthcheck:

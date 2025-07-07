@@ -19,12 +19,12 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 30s
 
-  # Neo4j metrics (Note: Community Edition may not support Prometheus metrics)
-  # - job_name: 'neo4j'
-  #   static_configs:
-  #     - targets: ['neo4j:2004']
-  #   metrics_path: /metrics
-  #   scrape_interval: 30s
+  # Neo4j metrics
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:2004']
+    metrics_path: /metrics
+    scrape_interval: 30s
 
   # Grafana metrics
   - job_name: 'grafana'
