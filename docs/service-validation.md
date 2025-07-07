@@ -44,7 +44,7 @@ In-depth testing of service functionality, inter-service communication, and end-
 🔍 Context Memory Store - Health Check
 =====================================
 ✅ Qdrant health endpoint accessible
-✅ Neo4j health endpoint accessible  
+✅ Neo4j health endpoint accessible
 ✅ Prometheus health endpoint accessible
 ✅ Grafana health endpoint accessible
 ⚠️  Ollama service not accessible (optional)
