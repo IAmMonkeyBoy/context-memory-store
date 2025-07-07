@@ -8,7 +8,7 @@ The Context Memory Store uses a microservices architecture with the following co
 
 - **Qdrant** - Vector database for semantic search
 - **Neo4j** - Graph database for relationship storage
-- **Ollama** - LLM API for chat and embeddings
+- **Ollama** - LLM API for chat and embeddings (external service)
 - **Prometheus** - Metrics collection
 - **Grafana** - Monitoring dashboards
 
@@ -23,17 +23,17 @@ The Context Memory Store uses a microservices architecture with the following co
 
 ### Neo4j (Graph Database)
 - **Image**: `neo4j:5.15-community`
-- **Ports**: 7474 (HTTP), 7687 (Bolt)
+- **Ports**: 7474 (HTTP), 7687 (Bolt), 2004 (Metrics)
 - **Purpose**: Stores relationships and graph data
-- **Configuration**: `/config/neo4j.conf`
+- **Configuration**: Environment variables (no config file needed)
 - **Data**: Persistent volumes for data, logs, import, plugins
-- **Credentials**: neo4j/contextmemory
+- **Credentials**: Configurable via NEO4J_USERNAME/NEO4J_PASSWORD
 
-### Ollama (LLM API)
-- **Image**: `ollama/ollama:latest`
-- **Port**: 11434
+### Ollama (External LLM API)
+- **Installation**: Must be installed and running on host machine
+- **Port**: 11434 (on host)
 - **Purpose**: Provides OpenAI-compatible API for chat and embeddings
-- **GPU Support**: NVIDIA GPU support enabled
+- **Access**: Services connect via `host.docker.internal:11434`
 - **Models**: llama3 (chat), mxbai-embed-large (embeddings)
 
 ### Prometheus (Metrics)
@@ -74,30 +74,55 @@ docker-compose down
 
 - **Qdrant Web UI**: http://localhost:6333/dashboard
 - **Neo4j Browser**: http://localhost:7474
-- **Ollama API**: http://localhost:11434
+- **Neo4j Metrics**: http://localhost:2004 (Prometheus endpoint)
+- **Ollama API**: http://localhost:11434 (external)
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3000
 
 ## Initial Setup
 
-### 1. Start Services
+### 1. Install and Start Ollama (Host Machine)
+```bash
+# Install Ollama on your host machine
+# Visit https://ollama.com/download for installation instructions
+
+# Start Ollama
+ollama serve
+
+# Pull required models
+ollama pull llama3
+ollama pull mxbai-embed-large
+```
+
+### 2. Configure Environment Variables (Optional)
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit credentials and configuration
+# NEO4J_USERNAME, NEO4J_PASSWORD, GRAFANA_PASSWORD
+```
+
+### 3. Start Docker Services
 ```bash
 docker-compose up -d
 ```
 
-### 2. Configure Ollama Models
+### 4. Verify Ollama Connection
 ```bash
-# Pull required models
-docker exec -it context-memory-ollama ollama pull llama3
-docker exec -it context-memory-ollama ollama pull mxbai-embed-large
+# Test Ollama API from host
+curl http://localhost:11434/api/version
+
+# Test from Docker network (should work via host.docker.internal)
+docker exec -it context-memory-prometheus curl http://host.docker.internal:11434/api/version
 ```
 
-### 3. Verify Neo4j Connection
+### 5. Verify Neo4j Connection
 Access Neo4j Browser at http://localhost:7474 and login with:
 - Username: neo4j
 - Password: contextmemory
 
-### 4. Check Grafana Dashboard
+### 6. Check Grafana Dashboard
 Access Grafana at http://localhost:3000 and login with:
 - Username: admin
 - Password: contextmemory
@@ -106,10 +131,11 @@ Access Grafana at http://localhost:3000 and login with:
 
 ### Common Issues
 
-1. **Port Conflicts**: Ensure ports 6333, 6334, 7474, 7687, 11434, 9090, 3000 are available
-2. **GPU Support**: Remove GPU configuration from ollama service if no GPU available
-3. **Memory Issues**: Adjust memory limits in service configurations
-4. **Permissions**: Ensure Docker has proper permissions for volume mounts
+1. **Port Conflicts**: Ensure ports 6333, 6334, 7474, 7687, 2004, 9090, 3000 are available (11434 for Ollama on host)
+2. **Ollama Connection**: Ensure Ollama is running on host machine and accessible via host.docker.internal
+3. **Neo4j APOC**: APOC plugin is automatically installed via environment variables (no config file conflicts)
+4. **Memory Issues**: Adjust memory limits in service configurations
+5. **Permissions**: Ensure Docker has proper permissions for volume mounts
 
 ### Logs
 ```bash
@@ -119,7 +145,7 @@ docker-compose logs -f
 # View specific service logs
 docker-compose logs -f qdrant
 docker-compose logs -f neo4j
-docker-compose logs -f ollama
+docker-compose logs -f prometheus
 ```
 
 ### Health Checks

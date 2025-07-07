@@ -19,20 +19,27 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 30s
 
-  # Neo4j metrics
-  - job_name: 'neo4j'
+  # Neo4j metrics (Note: Community Edition may not support Prometheus metrics)
+  # - job_name: 'neo4j'
+  #   static_configs:
+  #     - targets: ['neo4j:2004']
+  #   metrics_path: /metrics
+  #   scrape_interval: 30s
+
+  # Grafana metrics
+  - job_name: 'grafana'
     static_configs:
-      - targets: ['neo4j:2004']
+      - targets: ['grafana:3000']
     metrics_path: /metrics
     scrape_interval: 30s
 
-  # Ollama metrics (if available)
-  - job_name: 'ollama'
-    static_configs:
-      - targets: ['ollama:11434']
-    metrics_path: /metrics
-    scrape_interval: 30s
-    scrape_timeout: 10s
+  # Ollama metrics (external service - configure manually if needed)
+  # - job_name: 'ollama'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:11434']
+  #   metrics_path: /metrics
+  #   scrape_interval: 30s
+  #   scrape_timeout: 10s
 
   # Context Memory Store API (placeholder for future phases)
   # - job_name: 'context-api'
