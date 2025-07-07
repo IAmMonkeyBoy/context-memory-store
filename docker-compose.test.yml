@@ -272,7 +272,7 @@ services:
         
         if curl -s --max-time 15 -X PUT "http://qdrant:6333/collections/$$TEST_COLLECTION/points" \
           -H "Content-Type: application/json" \
-          -d "$$vectors_json" | grep -q "\"status\":\"acknowledged\""; then
+          -d "$vectors_json" | grep -q "\"status\":\"acknowledged\""; then
           echo "✅ Qdrant batch vector insertion successful"
         else
           echo "❌ Qdrant batch vector insertion failed"
@@ -336,7 +336,7 @@ services:
         
         # Query proxy test
         datasource_id=$(curl -s --max-time 15 "http://grafana:3000/api/datasources" | grep -o "\"id\":[0-9]*" | head -1 | grep -o "[0-9]*")
-        if [ -n "$$datasource_id" ] && curl -s --max-time 15 "http://grafana:3000/api/datasources/proxy/$$datasource_id/api/v1/query?query=up" | grep -q "\"data\""; then
+        if [ -n "$datasource_id" ] && curl -s --max-time 15 "http://grafana:3000/api/datasources/proxy/$datasource_id/api/v1/query?query=up" | grep -q "\"data\""; then
           echo "✅ Grafana query proxy to Prometheus working"
         else
           echo "⚠️  Grafana query proxy may have issues"

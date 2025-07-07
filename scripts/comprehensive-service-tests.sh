@@ -18,7 +18,6 @@ NC='\033[0m' # No Color
 # Configuration
 TIMEOUT=15
 TEST_COLLECTION="comprehensive-test-$(date +%s)"
-TEST_EMBEDDING_SIZE=768  # Standard for mxbai-embed-large
 
 # Logging functions
 log_info() {
@@ -261,7 +260,7 @@ test_end_to_end_connectivity() {
     
     local qdrant_test=$(curl -s --max-time $TIMEOUT "http://localhost:6333/collections/$TEST_COLLECTION")
     
-    if echo "$neo4j_test" | grep -q "neo4j_time" && echo "$qdrant_test" | grep -q "vectors_count"; then
+    if echo "$neo4j_test" | grep -q "neo4j_time" && echo "$qdrant_test" | grep -q "points_count"; then
         log_success "Neo4j and Qdrant concurrent operation readiness confirmed"
     else
         log_warning "Neo4j and Qdrant concurrent operations may have issues"
