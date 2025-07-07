@@ -55,7 +55,12 @@ Metrics:  http://localhost:8080/metrics
 - Graph database queries
 - Batch operations
 - Enhanced error handling
-- Performance optimizations
+
+**MCP Protocol Implementation**:
+- JSON-RPC 2.0 over WebSockets
+- Basic tool definitions and capabilities
+- Simple resource access patterns
+- Tool calling for memory operations
 
 **Additional Endpoints**:
 - Vector search with filtering
@@ -66,11 +71,11 @@ Metrics:  http://localhost:8080/metrics
 ### 🔮 Phase 7+ Scope (Future Implementation)
 
 **Advanced Features**:
-- MCP protocol implementation
 - Streaming responses
 - Webhook notifications
 - Advanced authentication
 - Multi-project support
+- Production-grade optimizations
 
 ### ❌ Out of Scope (Conceptual/Far Future)
 
@@ -663,7 +668,7 @@ paths:
           $ref: '#/components/responses/InternalError'
 ```
 
-## MCP Protocol Integration (Future Implementation)
+## MCP Protocol Integration (Phase 4-6 Implementation)
 
 ### MCP Server Architecture
 
@@ -683,7 +688,7 @@ paths:
 
 **Implementation Example**:
 ```python
-# MCP Server Implementation (Future)
+# MCP Server Implementation (Phase 4-6)
 from mcp.server import Server
 import mcp.types as types
 
@@ -718,20 +723,28 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
 ## Performance Considerations
 
-### Phase 3 Performance Targets
+### Phase 3 Performance Targets (Local Development Environment)
 
-- **Response Time**: < 200ms for search queries
-- **Throughput**: 100 requests/minute per instance
-- **Memory Usage**: < 2GB RAM for typical workloads
-- **Storage**: Efficient vector and graph storage
+**Realistic Local Development Targets**:
+- **Response Time**: < 2 seconds for typical search queries
+- **Throughput**: 10-20 requests/minute (single developer usage)
+- **Memory Usage**: < 4GB RAM for typical development workloads
+- **Storage**: Reasonable local disk usage for project-sized datasets
+- **Startup Time**: < 30 seconds for full system initialization
 
-### Future Optimizations
+**Development Environment Assumptions**:
+- Single developer using local machine
+- Project-sized datasets (not enterprise scale)
+- Local Docker containers for all services
+- No production-grade optimization requirements
+- Focus on functionality over performance
+
+### Future Optimizations (When Needed)
 
 - Response caching for frequently accessed data
-- Streaming responses for large result sets
-- Batch operation support
-- Connection pooling
-- Async request processing
+- Connection pooling optimization
+- Memory usage optimization
+- Async request processing improvements
 
 ## Testing Strategy
 
@@ -761,20 +774,20 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
 ## Deployment Considerations
 
-### Phase 3 Deployment
+### Local Development Deployment
 
-**Local Development**:
-- Docker Compose integration
-- Configuration via environment variables
-- Health check endpoints
-- Logging and monitoring
+**Docker Compose Integration**:
+- Single-machine deployment via Docker Compose
+- Configuration via environment variables and config files
+- Health check endpoints for development debugging
+- Basic logging for development troubleshooting
+- Local file system persistence
 
-### Future Deployment Options
-
-- Container orchestration (Kubernetes)
-- Cloud platform deployment
-- CI/CD pipeline integration
-- Production monitoring
+**Development Focus**:
+- Easy local setup and teardown
+- Quick iteration and testing
+- Minimal configuration complexity
+- Developer-friendly error messages and logging
 
 ## Conclusion
 
