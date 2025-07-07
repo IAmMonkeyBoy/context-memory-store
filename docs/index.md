@@ -11,6 +11,10 @@ This directory contains comprehensive documentation for all features and compone
 - [Comprehensive Testing](comprehensive-testing.md) - Advanced service functionality testing
 - [Service Validation Guide](service-validation.md) - Complete validation procedures and workflows
 
+## API Design & Specification
+
+- [API Design & OpenAPI Specification](api-design.md) - Complete API design, REST endpoints, MCP protocol integration, and implementation roadmap
+
 ## Features by Phase
 
 ### Phase 1: Project Foundation & Infrastructure Setup ✅
@@ -33,10 +37,11 @@ This directory contains comprehensive documentation for all features and compone
 - ✅ Service validation workflows for future development
 - ✅ Configuration management consolidated and documented
 
-### Phase 3: API Design & OpenAPI Specification (Coming Soon)
+### Phase 3: API Design & OpenAPI Specification (Current)
 - Complete API design and documentation
 - OpenAPI specification for all endpoints
 - REST API and MCP protocol integration design
+- Implementation roadmap and phasing strategy
 
 ### Phase 4: .NET 9 Solution Structure (Coming Soon)
 - Project structure and dependencies
