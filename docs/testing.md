@@ -209,7 +209,7 @@ Test scripts respect the following environment variables:
 ### Service Credentials
 
 Test scripts use the default POC credentials:
-- Neo4j: `neo4j` / `contextmemory`
+- Neo4j: No authentication required (disabled for local development)
 - Grafana: `admin` / `contextmemory`
 
 ## Security Considerations

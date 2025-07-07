@@ -14,8 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 TIMEOUT=15
-NEO4J_USER="neo4j"
-NEO4J_PASS="contextmemory"
+# Neo4j authentication disabled for local development
 GRAFANA_USER="admin"
 GRAFANA_PASS="contextmemory"
 
@@ -99,7 +98,7 @@ validate_neo4j() {
     # Test basic authentication and connectivity
     if curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
         -H "Content-Type: application/json" \
-        -X POST "http://localhost:7474/db/data/transaction/commit" \
+        -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d '{"statements":[{"statement":"RETURN 1 as test"}]}' | grep -q "test"; then
         log_success "Neo4j authentication and basic queries working"
     else
@@ -110,7 +109,7 @@ validate_neo4j() {
     # Test APOC availability
     if curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
         -H "Content-Type: application/json" \
-        -X POST "http://localhost:7474/db/data/transaction/commit" \
+        -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d '{"statements":[{"statement":"CALL apoc.help(\"apoc\") YIELD name RETURN count(name) as apoc_procedures"}]}' | grep -q "apoc_procedures"; then
         log_success "Neo4j APOC procedures are available"
     else
@@ -122,9 +121,9 @@ validate_neo4j() {
     local test_label="ValidationTest$(date +%s)"
     
     # Create test node
-    if curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
+    if curl -s --max-time $TIMEOUT \
         -H "Content-Type: application/json" \
-        -X POST "http://localhost:7474/db/data/transaction/commit" \
+        -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d "{\"statements\":[{\"statement\":\"CREATE (n:$test_label {name: 'test', timestamp: timestamp()}) RETURN n.name as name\"}]}" | grep -q "test"; then
         log_success "Neo4j node creation successful"
     else
@@ -133,9 +132,9 @@ validate_neo4j() {
     fi
     
     # Query test node
-    if curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
+    if curl -s --max-time $TIMEOUT \
         -H "Content-Type: application/json" \
-        -X POST "http://localhost:7474/db/data/transaction/commit" \
+        -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d "{\"statements\":[{\"statement\":\"MATCH (n:$test_label) RETURN n.name as name\"}]}" | grep -q "test"; then
         log_success "Neo4j node querying working"
     else
@@ -143,9 +142,9 @@ validate_neo4j() {
     fi
     
     # Cleanup test nodes
-    curl -s --max-time $TIMEOUT -u "$NEO4J_USER:$NEO4J_PASS" \
+    curl -s --max-time $TIMEOUT \
         -H "Content-Type: application/json" \
-        -X POST "http://localhost:7474/db/data/transaction/commit" \
+        -X POST "http://localhost:7474/db/neo4j/tx/commit" \
         -d "{\"statements\":[{\"statement\":\"MATCH (n:$test_label) DELETE n\"}]}" > /dev/null
     
     # Test metrics endpoint
