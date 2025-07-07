@@ -66,10 +66,12 @@ The system uses a microservices architecture with:
 - All services designed to run locally via Docker
 
 ### Security Model
-- **Local Development Focus**: This system is designed for local development and research use only
-- No authentication by default (suitable for local-only deployment)
-- Services communicate via `host.docker.internal`
-- Isolated networks and minimal port exposure
+- **PROOF OF CONCEPT ONLY**: This system is designed for local development, research, and laboratory environments only
+- **NOT FOR PRODUCTION**: No security hardening, authentication, or encryption implemented
+- **Default credentials intentionally simple**: Passwords like "contextmemory" are used for convenience in local development
+- **No authentication by default**: All services run without authentication for ease of development
+- **Services communicate via `host.docker.internal`**: Suitable for local Docker networking only
+- **Isolated networks and minimal port exposure**: Basic isolation sufficient for local development
 
 ### Monitoring
 - Prometheus metrics for memory size, request count, token usage
