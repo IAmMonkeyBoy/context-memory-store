@@ -112,6 +112,7 @@ When Phase 2 is approved, focus on:
 - Ensure branch names are descriptive of the changes being made
 - We should not make changes to files in the main branch. If a change is necessary we should create a branch and then make the change.
 - When you start working on any code change that will lead to a new branch and eventually a pull request, create and push the branch and create the pull request as a draft.
+- Once you've gotten to the point where you think you've completed the changes and have pushed up all of the code, please take the pr out of draft state
 
 ### Project Phasing
 - Each of the phases should be a discrete set of changes
