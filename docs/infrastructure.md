@@ -74,7 +74,8 @@ docker-compose down
 
 - **Qdrant Web UI**: http://localhost:6333/dashboard
 - **Neo4j Browser**: http://localhost:7474
-- **Ollama API**: http://localhost:11434
+- **Neo4j Metrics**: http://localhost:2004 (Prometheus endpoint)
+- **Ollama API**: http://localhost:11434 (external)
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3000
 
@@ -93,12 +94,21 @@ ollama pull llama3
 ollama pull mxbai-embed-large
 ```
 
-### 2. Start Docker Services
+### 2. Configure Environment Variables (Optional)
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit credentials and configuration
+# NEO4J_USERNAME, NEO4J_PASSWORD, GRAFANA_PASSWORD
+```
+
+### 3. Start Docker Services
 ```bash
 docker-compose up -d
 ```
 
-### 3. Verify Ollama Connection
+### 4. Verify Ollama Connection
 ```bash
 # Test Ollama API from host
 curl http://localhost:11434/api/version
@@ -107,12 +117,12 @@ curl http://localhost:11434/api/version
 docker exec -it context-memory-prometheus curl http://host.docker.internal:11434/api/version
 ```
 
-### 4. Verify Neo4j Connection
+### 5. Verify Neo4j Connection
 Access Neo4j Browser at http://localhost:7474 and login with:
 - Username: neo4j
 - Password: contextmemory
 
-### 5. Check Grafana Dashboard
+### 6. Check Grafana Dashboard
 Access Grafana at http://localhost:3000 and login with:
 - Username: admin
 - Password: contextmemory
