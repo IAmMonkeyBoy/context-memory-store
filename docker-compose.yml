@@ -70,6 +70,7 @@ services:
     networks:
       - context-memory-network
 
+
   # Note: Ollama is expected to be running externally on the host machine
   # The services will connect to Ollama via host.docker.internal:11434
 

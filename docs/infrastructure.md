@@ -25,7 +25,7 @@ The Context Memory Store uses a microservices architecture with the following co
 - **Image**: `neo4j:5.15-community`
 - **Ports**: 7474 (HTTP), 7687 (Bolt), 2004 (Metrics)
 - **Purpose**: Stores relationships and graph data
-- **Configuration**: Environment variables (no config file needed)
+- **Configuration**: `/config/neo4j.conf` (mounted volume)
 - **Data**: Persistent volumes for data, logs, import, plugins
 - **Credentials**: Configurable via NEO4J_USERNAME/NEO4J_PASSWORD
 
@@ -133,7 +133,7 @@ Access Grafana at http://localhost:3000 and login with:
 
 1. **Port Conflicts**: Ensure ports 6333, 6334, 7474, 7687, 2004, 9090, 3000 are available (11434 for Ollama on host)
 2. **Ollama Connection**: Ensure Ollama is running on host machine and accessible via host.docker.internal
-3. **Neo4j APOC**: APOC plugin is automatically installed via environment variables (no config file conflicts)
+3. **Neo4j APOC**: APOC plugin is automatically installed via environment variables
 4. **Memory Issues**: Adjust memory limits in service configurations
 5. **Permissions**: Ensure Docker has proper permissions for volume mounts
 
