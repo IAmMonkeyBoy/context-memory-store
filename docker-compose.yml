@@ -1,4 +1,7 @@
-version: '3.8'
+# Context Memory Store - Docker Compose Configuration
+# WARNING: This is a PROOF OF CONCEPT for local development only
+# NOT suitable for production use - contains default passwords and no authentication
+# Designed for local research and laboratory environments
 
 services:
   # Vector Database - Qdrant
@@ -11,10 +14,23 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-      - ./config/qdrant.yaml:/qdrant/config/production.yaml
+      - ./config/qdrant.yaml:/qdrant/config/config.yaml
     environment:
       - QDRANT__SERVICE__HTTP_PORT=6333
       - QDRANT__SERVICE__GRPC_PORT=6334
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     networks:
       - context-memory-network
 
@@ -26,41 +42,37 @@ services:
     ports:
       - "7474:7474"
       - "7687:7687"
+      - "2004:2004"
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
-      - ./config/neo4j.conf:/var/lib/neo4j/conf/neo4j.conf
+      - ./config/neo4j.conf:/var/lib/neo4j/conf/neo4j.conf:ro
     environment:
-      - NEO4J_AUTH=neo4j/contextmemory
-      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_AUTH=${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:-contextmemory}
+      - NEO4J_PLUGINS=apoc
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
     networks:
       - context-memory-network
 
-  # LLM API - Ollama
-  ollama:
-    image: ollama/ollama:latest
-    container_name: context-memory-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
-      - OLLAMA_ORIGINS=*
-    networks:
-      - context-memory-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+
+  # Note: Ollama is expected to be running externally on the host machine
+  # The services will connect to Ollama via host.docker.internal:11434
 
   # Metrics Collection - Prometheus
   prometheus:
@@ -78,6 +90,19 @@ services:
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     networks:
       - context-memory-network
 
@@ -93,8 +118,20 @@ services:
       - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=contextmemory
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-contextmemory}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     depends_on:
       - prometheus
     networks:
@@ -113,11 +150,10 @@ services:
   #     - ASPNETCORE_ENVIRONMENT=Development
   #     - ConnectionStrings__Qdrant=http://qdrant:6333
   #     - ConnectionStrings__Neo4j=bolt://neo4j:7687
-  #     - ConnectionStrings__Ollama=http://ollama:11434
+  #     - ConnectionStrings__Ollama=http://host.docker.internal:11434
   #   depends_on:
   #     - qdrant
   #     - neo4j
-  #     - ollama
   #   networks:
   #     - context-memory-network
 
@@ -131,8 +167,6 @@ volumes:
   neo4j_import:
     driver: local
   neo4j_plugins:
-    driver: local
-  ollama_data:
     driver: local
   prometheus_data:
     driver: local

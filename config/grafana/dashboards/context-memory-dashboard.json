@@ -18,7 +18,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "up{job=~\"qdrant|neo4j|ollama|prometheus\"}",
+            "expr": "up{job=~\"qdrant|neo4j|prometheus\"}",
             "legendFormat": "{{job}}"
           }
         ],

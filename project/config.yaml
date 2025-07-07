@@ -1,5 +1,8 @@
 # Context Memory Store Configuration
 # This file contains the configuration for a single project instance
+# 
+# WARNING: PROOF OF CONCEPT ONLY - NOT FOR PRODUCTION USE
+# Contains default credentials and no authentication for local development convenience
 
 # Project Information
 project:
@@ -31,7 +34,7 @@ vector_store:
   # Collection name for this project
   collection_name: "context-memory"
   # Vector dimensions (depends on embedding model)
-  vector_size: 1024
+  vector_size: 768  # mxbai-embed-large embedding dimension
   # Distance metric for similarity search
   distance: "Cosine"
   # Path to local vector store backup
@@ -39,10 +42,10 @@ vector_store:
 
 # Graph Storage Configuration (Neo4j)
 graph_store:
-  # Neo4j connection details
+  # Neo4j connection details (can be overridden via environment variables)
   uri: "bolt://localhost:7687"
-  username: "neo4j"
-  password: "contextmemory"
+  username: "neo4j"  # Override with GRAPH_STORE_USERNAME
+  password: "contextmemory"  # Override with GRAPH_STORE_PASSWORD
   # Database name
   database: "neo4j"
   # Path to local graph backup
