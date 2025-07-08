@@ -185,4 +185,4 @@ Currently implementing:
 ## Workflow Memories
 
 - When updating CLAUDE.md, please review and update README.md to ensure that it remains up to date as well
-- If you are assigned to work on a github issue, all pull requests related to that issue must be linked.
+- If you are assigned to work on a GitHub issue, all pull requests related to that issue must be linked.
