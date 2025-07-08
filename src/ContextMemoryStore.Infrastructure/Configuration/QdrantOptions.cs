@@ -13,9 +13,9 @@ public class QdrantOptions
     public string Host { get; set; } = "localhost";
 
     /// <summary>
-    /// Qdrant server port (default: 6334)
+    /// Qdrant server port (default: 6333 for HTTP API)
     /// </summary>
-    public int Port { get; set; } = 6334;
+    public int Port { get; set; } = 6333;
 
     /// <summary>
     /// Whether to use HTTPS (default: false for local development)
@@ -36,4 +36,9 @@ public class QdrantOptions
     /// Vector size for embeddings (default: 768 for mxbai-embed-large)
     /// </summary>
     public int VectorSize { get; set; } = 768;
+
+    /// <summary>
+    /// Distance metric for similarity search (default: Cosine)
+    /// </summary>
+    public string Distance { get; set; } = "Cosine";
 }
