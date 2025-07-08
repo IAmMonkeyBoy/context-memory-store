@@ -139,3 +139,8 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+/// <summary>
+/// Program class for integration testing
+/// </summary>
+public partial class Program { }
