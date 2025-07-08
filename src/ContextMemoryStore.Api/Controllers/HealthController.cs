@@ -38,9 +38,14 @@ public class HealthController : ControllerBase
     [ProducesResponseType(typeof(object), 503)]
     public async Task<IActionResult> GetHealth()
     {
+        var startTime = DateTime.UtcNow;
+        
         try
         {
+            _logger.LogDebug("Starting basic health check");
+            
             var healthReport = await _healthCheckService.CheckHealthAsync();
+            var responseTime = (DateTime.UtcNow - startTime).TotalMilliseconds;
             
             var response = new
             {
@@ -50,13 +55,17 @@ public class HealthController : ControllerBase
                 uptime_seconds = GetUptimeSeconds()
             };
 
+            _logger.LogInformation("Health check completed with status {Status} in {ResponseTime}ms", 
+                healthReport.Status, responseTime);
+
             return healthReport.Status == HealthStatus.Healthy 
                 ? Ok(response) 
                 : StatusCode(503, response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking health");
+            var responseTime = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            _logger.LogError(ex, "Health check failed after {ResponseTime}ms", responseTime);
             
             var errorResponse = new
             {

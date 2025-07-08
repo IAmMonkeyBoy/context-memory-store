@@ -184,25 +184,41 @@ services:
     networks:
       - context-memory-network
 
-  # Context Memory Store API (placeholder for future phases)
-  # context-api:
-  #   build: ./src
-  #   container_name: context-memory-api
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./project:/app/project
-  #   environment:
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ConnectionStrings__Qdrant=http://qdrant:6333
-  #     - ConnectionStrings__Neo4j=bolt://neo4j:7687
-  #     - ConnectionStrings__Ollama=http://host.docker.internal:11434
-  #   depends_on:
-  #     - qdrant
-  #     - neo4j
-  #   networks:
-  #     - context-memory-network
+  # Context Memory Store API
+  context-api:
+    build: 
+      context: ./src
+      dockerfile: ContextMemoryStore.Api/Dockerfile
+    container_name: context-memory-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./project:/app/project
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - context-memory-network
 
 volumes:
   qdrant_data:

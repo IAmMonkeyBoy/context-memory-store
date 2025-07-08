@@ -16,10 +16,16 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure options from appsettings.json
+        services.Configure<ProjectOptions>(configuration.GetSection(ProjectOptions.SectionName));
+        services.Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName));
         services.Configure<QdrantOptions>(configuration.GetSection(QdrantOptions.SectionName));
         services.Configure<Neo4jOptions>(configuration.GetSection(Neo4jOptions.SectionName));
         services.Configure<OllamaOptions>(configuration.GetSection(OllamaOptions.SectionName));
+        services.Configure<MemoryOptions>(configuration.GetSection(MemoryOptions.SectionName));
+        services.Configure<ProcessingOptions>(configuration.GetSection(ProcessingOptions.SectionName));
         services.Configure<PrometheusOptions>(configuration.GetSection(PrometheusOptions.SectionName));
+        services.Configure<PerformanceOptions>(configuration.GetSection(PerformanceOptions.SectionName));
+        services.Configure<FeaturesOptions>(configuration.GetSection(FeaturesOptions.SectionName));
 
         // Register external service clients
         AddQdrantClient(services, configuration);
