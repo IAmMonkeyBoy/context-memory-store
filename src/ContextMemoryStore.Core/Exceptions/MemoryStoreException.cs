@@ -16,16 +16,23 @@ public class MemoryStoreException : Exception
     public Dictionary<string, object>? Details { get; }
 
     /// <summary>
+    /// HTTP status code for the exception
+    /// </summary>
+    public int StatusCode { get; }
+
+    /// <summary>
     /// Initializes a new instance of the MemoryStoreException class
     /// </summary>
     /// <param name="errorCode">Error code</param>
     /// <param name="message">Error message</param>
+    /// <param name="statusCode">HTTP status code</param>
     /// <param name="details">Additional error details</param>
     /// <param name="innerException">Inner exception</param>
-    public MemoryStoreException(string errorCode, string message, Dictionary<string, object>? details = null, Exception? innerException = null)
+    public MemoryStoreException(string errorCode, string message, int statusCode = 500, Dictionary<string, object>? details = null, Exception? innerException = null)
         : base(message, innerException)
     {
         ErrorCode = errorCode;
+        StatusCode = statusCode;
         Details = details;
     }
 }
@@ -40,7 +47,7 @@ public class DocumentNotFoundException : MemoryStoreException
     /// </summary>
     /// <param name="documentId">Document identifier</param>
     public DocumentNotFoundException(string documentId)
-        : base("DOCUMENT_NOT_FOUND", $"Document with ID '{documentId}' was not found", new Dictionary<string, object> { ["DocumentId"] = documentId })
+        : base("DOCUMENT_NOT_FOUND", $"Document with ID '{documentId}' was not found", 404, new Dictionary<string, object> { ["DocumentId"] = documentId })
     {
     }
 }
@@ -57,7 +64,7 @@ public class DocumentProcessingException : MemoryStoreException
     /// <param name="message">Error message</param>
     /// <param name="innerException">Inner exception</param>
     public DocumentProcessingException(string documentId, string message, Exception? innerException = null)
-        : base("DOCUMENT_PROCESSING_ERROR", message, new Dictionary<string, object> { ["DocumentId"] = documentId }, innerException)
+        : base("DOCUMENT_PROCESSING_ERROR", message, 422, new Dictionary<string, object> { ["DocumentId"] = documentId }, innerException)
     {
     }
 }
@@ -73,7 +80,7 @@ public class VectorStoreException : MemoryStoreException
     /// <param name="message">Error message</param>
     /// <param name="innerException">Inner exception</param>
     public VectorStoreException(string message, Exception? innerException = null)
-        : base("VECTOR_STORE_ERROR", message, null, innerException)
+        : base("VECTOR_STORE_ERROR", message, 502, null, innerException)
     {
     }
 }
@@ -89,7 +96,7 @@ public class GraphStoreException : MemoryStoreException
     /// <param name="message">Error message</param>
     /// <param name="innerException">Inner exception</param>
     public GraphStoreException(string message, Exception? innerException = null)
-        : base("GRAPH_STORE_ERROR", message, null, innerException)
+        : base("GRAPH_STORE_ERROR", message, 502, null, innerException)
     {
     }
 }
@@ -105,7 +112,7 @@ public class LLMServiceException : MemoryStoreException
     /// <param name="message">Error message</param>
     /// <param name="innerException">Inner exception</param>
     public LLMServiceException(string message, Exception? innerException = null)
-        : base("LLM_SERVICE_ERROR", message, null, innerException)
+        : base("LLM_SERVICE_ERROR", message, 502, null, innerException)
     {
     }
 }

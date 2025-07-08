@@ -25,6 +25,78 @@ public class StandardResponse<T>
     /// Response metadata
     /// </summary>
     public ResponseMetadata? Metadata { get; set; }
+
+    /// <summary>
+    /// Create a successful response
+    /// </summary>
+    /// <param name="data">Response data</param>
+    /// <param name="requestId">Request identifier</param>
+    /// <param name="version">API version</param>
+    /// <returns>Success response</returns>
+    public static StandardResponse<T> Success(T data, string? requestId = null, string? version = "1.0.0")
+    {
+        return new StandardResponse<T>
+        {
+            Status = "success",
+            Data = data,
+            Metadata = new ResponseMetadata
+            {
+                RequestId = requestId ?? Guid.NewGuid().ToString(),
+                Timestamp = DateTime.UtcNow,
+                Version = version
+            }
+        };
+    }
+
+    /// <summary>
+    /// Create an error response
+    /// </summary>
+    /// <param name="code">Error code</param>
+    /// <param name="message">Error message</param>
+    /// <param name="details">Error details</param>
+    /// <param name="requestId">Request identifier</param>
+    /// <param name="version">API version</param>
+    /// <returns>Error response</returns>
+    public static StandardResponse<T> CreateError(string code, string message, object? details = null, string? requestId = null, string? version = "1.0.0")
+    {
+        return new StandardResponse<T>
+        {
+            Status = "error",
+            Error = new ErrorInfo
+            {
+                Code = code,
+                Message = message,
+                Details = details != null ? ConvertToDictionary(details) : null,
+                Timestamp = DateTime.UtcNow
+            },
+            Metadata = new ResponseMetadata
+            {
+                RequestId = requestId ?? Guid.NewGuid().ToString(),
+                Timestamp = DateTime.UtcNow,
+                Version = version
+            }
+        };
+    }
+
+    private static Dictionary<string, object>? ConvertToDictionary(object obj)
+    {
+        if (obj == null) return null;
+        
+        var type = obj.GetType();
+        var properties = type.GetProperties();
+        var result = new Dictionary<string, object>();
+        
+        foreach (var prop in properties)
+        {
+            var value = prop.GetValue(obj);
+            if (value != null)
+            {
+                result[prop.Name] = value;
+            }
+        }
+        
+        return result;
+    }
 }
 
 /// <summary>

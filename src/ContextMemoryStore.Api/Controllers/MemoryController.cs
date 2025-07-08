@@ -1,0 +1,259 @@
+using Microsoft.AspNetCore.Mvc;
+using ContextMemoryStore.Core.Entities;
+using ContextMemoryStore.Core.Interfaces;
+using static ContextMemoryStore.Core.Interfaces.IMemoryService;
+
+namespace ContextMemoryStore.Api.Controllers;
+
+[ApiController]
+[Route("memory")]
+[Produces("application/json")]
+public class MemoryController : ControllerBase
+{
+    private readonly IMemoryService _memoryService;
+    private readonly ILogger<MemoryController> _logger;
+
+    public MemoryController(IMemoryService memoryService, ILogger<MemoryController> logger)
+    {
+        _memoryService = memoryService;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Add new documents to memory
+    /// </summary>
+    /// <param name="request">Document ingestion request</param>
+    /// <returns>Ingestion results</returns>
+    [HttpPost("ingest")]
+    [ProducesResponseType(typeof(StandardResponse<object>), 200)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 400)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 500)]
+    public async Task<IActionResult> IngestDocuments([FromBody] IngestDocumentsRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("Ingesting {Count} documents", request.Documents?.Count ?? 0);
+            
+            var ingestionOptions = new IngestionOptions
+            {
+                AutoSummarize = request.Options?.AutoSummarize ?? true,
+                ExtractRelationships = request.Options?.ExtractRelationships ?? true,
+                ChunkSize = request.Options?.ChunkSize ?? 1000
+            };
+            
+            var result = await _memoryService.IngestDocumentsAsync(request.Documents!, ingestionOptions);
+            
+            var response = StandardResponse<object>.Success(new
+            {
+                ingested_documents = result.SuccessfulDocuments,
+                created_vectors = result.Results.Sum(r => r.ChunksCreated),
+                extracted_relationships = result.Results.Sum(r => r.RelationshipsExtracted),
+                processing_time_ms = result.TotalProcessingTimeMs,
+                documents = result.Results.Select(r => new
+                {
+                    id = r.DocumentId,
+                    status = r.Status,
+                    chunks = r.ChunksCreated,
+                    relationships = r.RelationshipsExtracted,
+                    summary = r.Summary
+                })
+            });
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error ingesting documents");
+            
+            var errorResponse = StandardResponse<object>.CreateError(
+                "PROCESSING_ERROR",
+                "Failed to ingest documents",
+                new { document_count = request.Documents?.Count ?? 0 }
+            );
+
+            return StatusCode(500, errorResponse);
+        }
+    }
+
+    /// <summary>
+    /// Retrieve relevant context for a query
+    /// </summary>
+    /// <param name="q">Search query</param>
+    /// <param name="limit">Maximum results</param>
+    /// <param name="includeRelationships">Include graph relationships</param>
+    /// <param name="minScore">Minimum relevance score</param>
+    /// <returns>Context response</returns>
+    [HttpGet("context")]
+    [ProducesResponseType(typeof(StandardResponse<ContextResponse>), 200)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 400)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 500)]
+    public async Task<IActionResult> GetContext(
+        [FromQuery] string q,
+        [FromQuery] int limit = 10,
+        [FromQuery] bool includeRelationships = false,
+        [FromQuery] double minScore = 0.5)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                var badRequestResponse = StandardResponse<object>.CreateError(
+                    "INVALID_QUERY",
+                    "Query parameter 'q' is required",
+                    new { parameter = "q", expected = "non-empty string", received = "null" }
+                );
+
+                return BadRequest(badRequestResponse);
+            }
+
+            _logger.LogInformation("Getting context for query: {Query}", q);
+            
+            var contextOptions = new ContextOptions
+            {
+                MaxDocuments = limit,
+                IncludeRelationships = includeRelationships,
+                MinScore = minScore
+            };
+            
+            var context = await _memoryService.GetContextAsync(q, contextOptions);
+            
+            var response = StandardResponse<ContextResponse>.Success(context);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting context for query: {Query}", q);
+            
+            var errorResponse = StandardResponse<object>.CreateError(
+                "INTERNAL_ERROR",
+                "Failed to retrieve context",
+                new { query = q }
+            );
+
+            return StatusCode(500, errorResponse);
+        }
+    }
+
+    /// <summary>
+    /// Semantic search across all memory
+    /// </summary>
+    /// <param name="q">Search query</param>
+    /// <param name="limit">Maximum results</param>
+    /// <param name="offset">Pagination offset</param>
+    /// <param name="filter">Metadata filter (JSON)</param>
+    /// <param name="sort">Sort order (relevance, date, title)</param>
+    /// <returns>Search results</returns>
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(StandardResponse<object>), 200)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 400)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 500)]
+    public async Task<IActionResult> Search(
+        [FromQuery] string q,
+        [FromQuery] int limit = 10,
+        [FromQuery] int offset = 0,
+        [FromQuery] string? filter = null,
+        [FromQuery] string sort = "relevance")
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                var badRequestResponse = StandardResponse<object>.CreateError(
+                    "INVALID_QUERY",
+                    "Query parameter 'q' is required",
+                    new { parameter = "q", expected = "non-empty string", received = "null" }
+                );
+
+                return BadRequest(badRequestResponse);
+            }
+
+            _logger.LogInformation("Searching for: {Query}", q);
+            
+            var searchOptions = new SearchOptions
+            {
+                Limit = limit,
+                Offset = offset,
+                SortBy = sort
+            };
+            
+            // Parse filter JSON if provided
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                try
+                {
+                    var filterDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(filter);
+                    searchOptions.Filters = filterDict;
+                }
+                catch
+                {
+                    var filterErrorResponse = StandardResponse<object>.CreateError(
+                        "INVALID_FILTER",
+                        "Invalid filter JSON format",
+                        new { filter = filter }
+                    );
+                    return BadRequest(filterErrorResponse);
+                }
+            }
+            
+            var results = await _memoryService.SearchAsync(q, searchOptions);
+            
+            var response = StandardResponse<object>.Success(new
+            {
+                query = q,
+                results = results.Documents.Select(r => new
+                {
+                    id = r.Id,
+                    title = r.Metadata.Title,
+                    content = r.Content,
+                    score = 0.0, // TODO: Add score to Document entity
+                    metadata = new
+                    {
+                        type = r.Metadata.Type,
+                        tags = r.Metadata.Tags
+                    },
+                    source = new
+                    {
+                        type = r.Source.Type,
+                        path = r.Source.Path
+                    }
+                }),
+                pagination = new
+                {
+                    total = results.TotalResults,
+                    limit = limit,
+                    offset = offset,
+                    has_more = results.TotalResults > (offset + limit)
+                },
+                processing_time_ms = results.ProcessingTimeMs
+            });
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching for: {Query}", q);
+            
+            var errorResponse = StandardResponse<object>.CreateError(
+                "INTERNAL_ERROR",
+                "Failed to perform search",
+                new { query = q }
+            );
+
+            return StatusCode(500, errorResponse);
+        }
+    }
+
+    public class IngestDocumentsRequest
+    {
+        public List<Document>? Documents { get; set; }
+        public IngestOptions? Options { get; set; }
+    }
+
+    public class IngestOptions
+    {
+        public bool AutoSummarize { get; set; } = true;
+        public bool ExtractRelationships { get; set; } = true;
+        public int ChunkSize { get; set; } = 1000;
+    }
+}
