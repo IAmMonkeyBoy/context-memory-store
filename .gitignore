@@ -68,6 +68,11 @@ nunit-*.xml
 *.swo
 *~
 
+# JetBrains Rider
+.idea/
+*.sln.iml
+*.DotSettings.user
+
 # Development Tools - Local configurations
 .vscode/settings.json
 *.code-workspace
