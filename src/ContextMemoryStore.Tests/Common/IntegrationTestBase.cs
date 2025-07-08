@@ -38,19 +38,8 @@ public abstract class IntegrationTestBase : IClassFixture<WebApplicationFactory<
     /// </summary>
     protected virtual void ConfigureTestConfiguration(IConfigurationBuilder builder)
     {
-        var testConfig = new Dictionary<string, string?>
-        {
-            ["Logging:LogLevel:Default"] = "Warning",
-            ["Logging:LogLevel:ContextMemoryStore"] = "Information",
-            ["Api:CorsEnabled"] = "false",
-            ["Qdrant:Host"] = "localhost",
-            ["Qdrant:Port"] = "6333",
-            ["Neo4j:Uri"] = "bolt://localhost:7687",
-            ["Ollama:BaseUrl"] = "http://localhost:11434/v1",
-            ["Prometheus:Enabled"] = "false"
-        };
-
-        builder.AddInMemoryCollection(testConfig);
+        // Load centralized test configuration to avoid drift
+        builder.AddJsonFile("appsettings.Testing.json", optional: false, reloadOnChange: true);
     }
 
     /// <summary>
