@@ -63,6 +63,20 @@ public interface IGraphStoreService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Total relationship count</returns>
     Task<long> GetRelationshipCountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if the graph store service is healthy
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if healthy, false otherwise</returns>
+    Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets graph statistics
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Graph statistics</returns>
+    Task<GraphStats> GetStatsAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -110,4 +124,20 @@ public class GraphTraversalResult
     /// Maximum depth reached during traversal
     /// </summary>
     public int MaxDepthReached { get; set; }
+}
+
+/// <summary>
+/// Statistics for the graph store
+/// </summary>
+public class GraphStats
+{
+    /// <summary>
+    /// Total number of nodes in the graph
+    /// </summary>
+    public int NodeCount { get; set; }
+
+    /// <summary>
+    /// Total number of relationships in the graph
+    /// </summary>
+    public int RelationshipCount { get; set; }
 }

@@ -45,6 +45,20 @@ public interface ILLMService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Extracted relationships</returns>
     Task<IEnumerable<RelationshipExtraction>> ExtractRelationshipsAsync(string text, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if the LLM service is healthy
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if healthy, false otherwise</returns>
+    Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets available models from the LLM service
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of available model names</returns>
+    Task<List<string>> GetAvailableModelsAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

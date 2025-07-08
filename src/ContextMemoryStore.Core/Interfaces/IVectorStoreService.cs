@@ -41,6 +41,20 @@ public interface IVectorStoreService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Total vector count</returns>
     Task<long> GetVectorCountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if the vector store service is healthy
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if healthy, false otherwise</returns>
+    Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the number of collections in the vector store
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Collection count</returns>
+    Task<int> GetCollectionCountAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
