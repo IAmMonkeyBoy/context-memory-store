@@ -44,7 +44,7 @@ public class LifecycleController : ControllerBase
                 config = request.Config
             });
 
-            return Ok(response);
+            return await Task.FromResult(Ok(response));
         }
         catch (Exception ex)
         {
@@ -86,7 +86,7 @@ public class LifecycleController : ControllerBase
                 files_persisted = new[] { "vector-store.jsonl", "graph.cypher", "summary.md" }
             });
 
-            return Ok(response);
+            return await Task.FromResult(Ok(response));
         }
         catch (Exception ex)
         {
