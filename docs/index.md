@@ -8,6 +8,7 @@ This directory contains comprehensive documentation for all features and compone
 - [Configuration Management](configuration.md) - System configuration and options
 - [Project Layout](project-layout.md) - Directory structure and file organization
 - [Testing Framework](testing.md) - Basic testing and validation tools
+- [Testing Methodology](testing-methodology.md) - Method-focused testing structure and organization patterns
 - [Comprehensive Testing](comprehensive-testing.md) - Advanced service functionality testing
 - [Service Validation Guide](service-validation.md) - Complete validation procedures and workflows
 
@@ -47,7 +48,8 @@ This directory contains comprehensive documentation for all features and compone
 - Project structure and dependencies
 - Core, API, and Infrastructure projects
 - Docker integration and configuration setup
-- Testing infrastructure and basic health checks
+- Testing infrastructure with method-focused organization pattern
+- Basic health checks and configuration validation
 
 ### Phase 5: Core API Foundation (Coming Soon)
 - ASP.NET Core 9 Web API setup

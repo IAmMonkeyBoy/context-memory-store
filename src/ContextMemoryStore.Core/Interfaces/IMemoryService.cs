@@ -57,6 +57,13 @@ public interface IMemoryService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Memory statistics</returns>
     Task<MemoryStatistics> GetStatisticsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if the memory service is healthy
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if healthy, false otherwise</returns>
+    Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

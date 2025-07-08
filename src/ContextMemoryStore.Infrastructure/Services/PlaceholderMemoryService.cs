@@ -85,4 +85,9 @@ public class PlaceholderMemoryService : IMemoryService
             LastUpdated = DateTime.UtcNow
         });
     }
+
+    public Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(true);
+    }
 }
