@@ -31,4 +31,9 @@ public class PrometheusOptions
     /// Whether to collect system metrics (default: true)
     /// </summary>
     public bool CollectSystemMetrics { get; set; } = true;
+
+    /// <summary>
+    /// Port for Prometheus metrics server (default: 9090)
+    /// </summary>
+    public int Port { get; set; } = 9090;
 }

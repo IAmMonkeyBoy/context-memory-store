@@ -87,29 +87,31 @@ public static class ServiceCollectionExtensions
 
     private static void AddPrometheusMetrics(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<MetricServer>(provider =>
+        var prometheusOptions = configuration.GetSection(PrometheusOptions.SectionName).Get<PrometheusOptions>();
+        
+        if (prometheusOptions?.Enabled == true)
         {
-            var options = provider.GetRequiredService<IOptions<PrometheusOptions>>().Value;
-            
-            if (!options.Enabled)
-                return null!;
+            services.AddSingleton<MetricServer>(provider =>
+            {
+                var options = provider.GetRequiredService<IOptions<PrometheusOptions>>().Value;
+                
+                // Create custom metrics for the application
+                var registry = Metrics.NewCustomRegistry();
+                
+                // Document count metric
+                var documentCount = Metrics.WithCustomRegistry(registry)
+                    .CreateGauge($"{options.MetricPrefix}_documents_total", "Total number of documents in memory");
+                
+                // Vector count metric  
+                var vectorCount = Metrics.WithCustomRegistry(registry)
+                    .CreateGauge($"{options.MetricPrefix}_vectors_total", "Total number of vectors stored");
+                
+                // Request duration metric
+                var requestDuration = Metrics.WithCustomRegistry(registry)
+                    .CreateHistogram($"{options.MetricPrefix}_request_duration_seconds", "Request duration in seconds");
 
-            // Create custom metrics for the application
-            var registry = Metrics.NewCustomRegistry();
-            
-            // Document count metric
-            var documentCount = Metrics.WithCustomRegistry(registry)
-                .CreateGauge($"{options.MetricPrefix}_documents_total", "Total number of documents in memory");
-            
-            // Vector count metric  
-            var vectorCount = Metrics.WithCustomRegistry(registry)
-                .CreateGauge($"{options.MetricPrefix}_vectors_total", "Total number of vectors stored");
-            
-            // Request duration metric
-            var requestDuration = Metrics.WithCustomRegistry(registry)
-                .CreateHistogram($"{options.MetricPrefix}_request_duration_seconds", "Request duration in seconds");
-
-            return new MetricServer(port: 9090, registry: registry);
-        });
+                return new MetricServer(port: options.Port, registry: registry);
+            });
+        }
     }
 }
