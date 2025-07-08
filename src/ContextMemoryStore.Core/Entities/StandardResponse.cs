@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace ContextMemoryStore.Core.Entities;
 
 /// <summary>
@@ -82,20 +84,41 @@ public class StandardResponse<T>
     {
         if (obj == null) return null;
         
+        // If the object is already a dictionary, return it directly to preserve key/value pairs
+        if (obj is IDictionary<string, object> dictionary)
+        {
+            return new Dictionary<string, object>(dictionary);
+        }
+        
+        // If it's a generic dictionary, convert to string keys
+        if (obj is IDictionary genericDict)
+        {
+            var result = new Dictionary<string, object>();
+            foreach (DictionaryEntry entry in genericDict)
+            {
+                if (entry.Key != null)
+                {
+                    result[entry.Key.ToString()!] = entry.Value ?? string.Empty;
+                }
+            }
+            return result;
+        }
+        
+        // For other objects, use reflection to get properties
         var type = obj.GetType();
         var properties = type.GetProperties();
-        var result = new Dictionary<string, object>();
+        var reflectionResult = new Dictionary<string, object>();
         
         foreach (var prop in properties)
         {
             var value = prop.GetValue(obj);
             if (value != null)
             {
-                result[prop.Name] = value;
+                reflectionResult[prop.Name] = value;
             }
         }
         
-        return result;
+        return reflectionResult;
     }
 }
 

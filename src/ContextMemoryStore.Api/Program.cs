@@ -69,6 +69,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// API versioning - all controllers will be under /v1
+app.UsePathBase("/v1");
+
 app.UseHttpsRedirection();
 app.UseCors();
 
@@ -76,9 +79,6 @@ app.UseCors();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseRouting();
-
-// API versioning - all controllers will be under /v1
-app.UsePathBase("/v1");
 
 app.MapControllers();
 
