@@ -26,6 +26,11 @@ public class Relationship
     public double Confidence { get; set; }
 
     /// <summary>
+    /// Document identifier that this relationship was extracted from
+    /// </summary>
+    public string DocumentId { get; set; } = string.Empty;
+
+    /// <summary>
     /// Additional metadata for the relationship
     /// </summary>
     public Dictionary<string, object> Metadata { get; set; } = new();

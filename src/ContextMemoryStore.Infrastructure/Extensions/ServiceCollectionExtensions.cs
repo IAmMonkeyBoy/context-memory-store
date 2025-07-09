@@ -33,20 +33,12 @@ public static class ServiceCollectionExtensions
         AddOpenAIClient(services, configuration);
         AddPrometheusMetrics(services, configuration);
 
-        // Register application services
-        // For Phase 4 Step 5, we continue using placeholder implementations
-        // but now with proper NuGet packages and configuration ready
-        services.AddScoped<IMemoryService, PlaceholderMemoryService>();
-        services.AddScoped<IVectorStoreService, PlaceholderVectorStoreService>();
-        services.AddScoped<IGraphStoreService, PlaceholderGraphStoreService>();
-        services.AddScoped<ILLMService, PlaceholderLLMService>();
-        
-        // TODO: Replace placeholder implementations in Phase 5:
-        // - QdrantVectorStoreService for IVectorStoreService
-        // - Neo4jGraphStoreService for IGraphStoreService  
-        // - OllamaLLMService for ILLMService
-        // - Complete MemoryService implementation
-        // - IDocumentRepository implementation
+        // Register application services - Phase 5 real implementations
+        services.AddScoped<IMemoryService, MemoryService>();
+        services.AddScoped<IVectorStoreService, QdrantVectorStoreService>();
+        services.AddScoped<IGraphStoreService, Neo4jGraphStoreService>();
+        services.AddScoped<ILLMService, OllamaLLMService>();
+        services.AddScoped<IDocumentRepository, InMemoryDocumentRepository>();
         
         return services;
     }
@@ -85,8 +77,8 @@ public static class ServiceCollectionExtensions
                 Endpoint = new Uri(options.BaseUrl)
             };
             
-            // For Ollama, we typically don't need an API key, but the API requires one
-            var apiKey = options.ApiKey ?? "not-required-for-ollama";
+            // For Ollama, we use a dummy API key since it doesn't require real authentication
+            var apiKey = string.IsNullOrEmpty(options.ApiKey) ? "ollama-dummy-key-not-required" : options.ApiKey;
             return new OpenAIClient(new System.ClientModel.ApiKeyCredential(apiKey), clientOptions);
         });
     }

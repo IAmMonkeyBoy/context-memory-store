@@ -47,4 +47,11 @@ public interface IDocumentRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of documents</returns>
     Task<IEnumerable<Document>> GetAllAsync(int skip = 0, int take = 100, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the total count of documents
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Total document count</returns>
+    Task<long> GetCountAsync(CancellationToken cancellationToken = default);
 }

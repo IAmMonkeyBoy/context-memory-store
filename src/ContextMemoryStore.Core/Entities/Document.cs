@@ -29,4 +29,9 @@ public class Document
     /// Processing information and status
     /// </summary>
     public DocumentProcessing Processing { get; set; } = new();
+
+    /// <summary>
+    /// Date and time when the document was created
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

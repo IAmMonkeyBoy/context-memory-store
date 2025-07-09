@@ -36,4 +36,9 @@ public class ProcessingOptions
     /// Minimum document length for processing (default: 100)
     /// </summary>
     public int MinDocumentLength { get; set; } = 100;
+
+    /// <summary>
+    /// Maximum number of concurrent documents to process (default: 5)
+    /// </summary>
+    public int MaxConcurrentDocuments { get; set; } = 5;
 }
