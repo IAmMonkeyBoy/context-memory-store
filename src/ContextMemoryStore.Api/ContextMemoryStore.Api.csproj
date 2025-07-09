@@ -11,6 +11,12 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
     
+    <!-- Validation packages -->
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    
+    <!-- Prometheus metrics -->
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    
     <!-- Serilog packages -->
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />

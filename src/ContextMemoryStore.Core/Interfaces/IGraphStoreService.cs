@@ -77,6 +77,13 @@ public interface IGraphStoreService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Graph statistics</returns>
     Task<GraphStats> GetStatsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Initializes the graph database schema and constraints
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if schema was initialized successfully</returns>
+    Task<bool> InitializeSchemaAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using ContextMemoryStore.Core.Entities;
 using ContextMemoryStore.Core.Interfaces;
+using ContextMemoryStore.Api.Validation;
+using FluentValidation;
 using static ContextMemoryStore.Core.Interfaces.IMemoryService;
 
 namespace ContextMemoryStore.Api.Controllers;
@@ -11,11 +13,22 @@ namespace ContextMemoryStore.Api.Controllers;
 public class MemoryController : ControllerBase
 {
     private readonly IMemoryService _memoryService;
+    private readonly IValidator<IngestDocumentsRequest> _ingestValidator;
+    private readonly IValidator<ContextQueryRequest> _contextValidator;
+    private readonly IValidator<SearchQueryRequest> _searchValidator;
     private readonly ILogger<MemoryController> _logger;
 
-    public MemoryController(IMemoryService memoryService, ILogger<MemoryController> logger)
+    public MemoryController(
+        IMemoryService memoryService,
+        IValidator<IngestDocumentsRequest> ingestValidator,
+        IValidator<ContextQueryRequest> contextValidator,
+        IValidator<SearchQueryRequest> searchValidator,
+        ILogger<MemoryController> logger)
     {
         _memoryService = memoryService;
+        _ingestValidator = ingestValidator;
+        _contextValidator = contextValidator;
+        _searchValidator = searchValidator;
         _logger = logger;
     }
 
@@ -28,10 +41,22 @@ public class MemoryController : ControllerBase
     [ProducesResponseType(typeof(StandardResponse<object>), 200)]
     [ProducesResponseType(typeof(StandardResponse<object>), 400)]
     [ProducesResponseType(typeof(StandardResponse<object>), 500)]
-    public async Task<IActionResult> IngestDocuments([FromBody] IngestDocumentsRequest request)
+    public async Task<IActionResult> IngestDocuments([FromBody] IngestDocumentsRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
+            // Validate request
+            var validationResult = await _ingestValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var validationResponse = StandardResponse<object>.CreateError(
+                    "VALIDATION_ERROR",
+                    "Request validation failed",
+                    validationResult.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
+                );
+                return BadRequest(validationResponse);
+            }
+
             _logger.LogInformation("Ingesting {Count} documents", request.Documents?.Count ?? 0);
             
             var ingestionOptions = new IngestionOptions
@@ -41,7 +66,7 @@ public class MemoryController : ControllerBase
                 ChunkSize = request.Options?.ChunkSize ?? 1000
             };
             
-            var result = await _memoryService.IngestDocumentsAsync(request.Documents!, ingestionOptions);
+            var result = await _memoryService.IngestDocumentsAsync(request.Documents!, ingestionOptions, cancellationToken);
             
             var response = StandardResponse<object>.Success(new
             {
@@ -91,19 +116,30 @@ public class MemoryController : ControllerBase
         [FromQuery] string q,
         [FromQuery] int limit = 10,
         [FromQuery] bool includeRelationships = false,
-        [FromQuery] double minScore = 0.5)
+        [FromQuery] double minScore = 0.5,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(q))
+            // Create request object for validation
+            var queryRequest = new ContextQueryRequest
             {
-                var badRequestResponse = StandardResponse<object>.CreateError(
-                    "INVALID_QUERY",
-                    "Query parameter 'q' is required",
-                    new { parameter = "q", expected = "non-empty string", received = "null" }
-                );
+                Query = q ?? string.Empty,
+                Limit = limit,
+                IncludeRelationships = includeRelationships,
+                MinScore = minScore
+            };
 
-                return BadRequest(badRequestResponse);
+            // Validate request
+            var validationResult = await _contextValidator.ValidateAsync(queryRequest, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var validationResponse = StandardResponse<object>.CreateError(
+                    "VALIDATION_ERROR",
+                    "Request validation failed",
+                    validationResult.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
+                );
+                return BadRequest(validationResponse);
             }
 
             _logger.LogInformation("Getting context for query: {Query}", q);
@@ -115,7 +151,7 @@ public class MemoryController : ControllerBase
                 MinScore = minScore
             };
             
-            var context = await _memoryService.GetContextAsync(q, contextOptions);
+            var context = await _memoryService.GetContextAsync(q ?? string.Empty, contextOptions, cancellationToken);
             
             var response = StandardResponse<ContextResponse>.Success(context);
 
@@ -153,19 +189,31 @@ public class MemoryController : ControllerBase
         [FromQuery] int limit = 10,
         [FromQuery] int offset = 0,
         [FromQuery] string? filter = null,
-        [FromQuery] string sort = "relevance")
+        [FromQuery] string sort = "relevance",
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(q))
+            // Create request object for validation
+            var searchRequest = new SearchQueryRequest
             {
-                var badRequestResponse = StandardResponse<object>.CreateError(
-                    "INVALID_QUERY",
-                    "Query parameter 'q' is required",
-                    new { parameter = "q", expected = "non-empty string", received = "null" }
-                );
+                Query = q ?? string.Empty,
+                Limit = limit,
+                Offset = offset,
+                Filter = filter,
+                Sort = sort
+            };
 
-                return BadRequest(badRequestResponse);
+            // Validate request
+            var validationResult = await _searchValidator.ValidateAsync(searchRequest, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var validationResponse = StandardResponse<object>.CreateError(
+                    "VALIDATION_ERROR",
+                    "Request validation failed",
+                    validationResult.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
+                );
+                return BadRequest(validationResponse);
             }
 
             _logger.LogInformation("Searching for: {Query}", q);
@@ -196,7 +244,7 @@ public class MemoryController : ControllerBase
                 }
             }
             
-            var results = await _memoryService.SearchAsync(q, searchOptions);
+            var results = await _memoryService.SearchAsync(q ?? string.Empty, searchOptions, cancellationToken);
             
             var response = StandardResponse<object>.Success(new
             {
@@ -206,7 +254,7 @@ public class MemoryController : ControllerBase
                     id = r.Id,
                     title = r.Metadata.Title,
                     content = r.Content,
-                    score = 0.0, // TODO: Add score to Document entity
+                    score = 0.0, // TODO: Add score to Document entity in future enhancement
                     metadata = new
                     {
                         type = r.Metadata.Type,

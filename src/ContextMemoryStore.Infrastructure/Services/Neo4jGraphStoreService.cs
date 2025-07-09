@@ -484,6 +484,47 @@ public class Neo4jGraphStoreService : IGraphStoreService
     }
 
     /// <summary>
+    /// Initializes the graph database schema and constraints
+    /// </summary>
+    public async Task<bool> InitializeSchemaAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Initializing Neo4j schema and constraints");
+
+            var session = _driver.AsyncSession();
+            try
+            {
+                // Create constraint for Entity.name if it doesn't exist
+                var constraintQuery = @"
+                    CREATE CONSTRAINT entity_name_unique IF NOT EXISTS
+                    FOR (n:Entity) REQUIRE n.name IS UNIQUE";
+
+                await session.RunAsync(constraintQuery);
+
+                // Create index for document_id on relationships if it doesn't exist
+                var indexQuery = @"
+                    CREATE INDEX relationship_document_id IF NOT EXISTS
+                    FOR ()-[r:RELATED]-() ON (r.document_id)";
+
+                await session.RunAsync(indexQuery);
+
+                _logger.LogInformation("Neo4j schema initialization completed successfully");
+                return true;
+            }
+            finally
+            {
+                await session.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize Neo4j schema");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Comparer for Relationship objects to ensure uniqueness in HashSet
     /// </summary>
     private class RelationshipComparer : IEqualityComparer<Relationship>

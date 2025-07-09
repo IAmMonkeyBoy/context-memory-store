@@ -2,6 +2,8 @@ using ContextMemoryStore.Core.Interfaces;
 using ContextMemoryStore.Infrastructure.Extensions;
 using ContextMemoryStore.Infrastructure.Configuration;
 using ContextMemoryStore.Api.Middleware;
+using FluentValidation;
+using Prometheus;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -24,6 +26,9 @@ builder.Host.UseSerilog();
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Configure OpenAPI/Swagger
 builder.Services.AddOpenApi(options =>
@@ -121,6 +126,10 @@ if (apiOptions.CorsEnabled)
 
 // Add global exception handling
 app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Add Prometheus metrics middleware
+app.UseMetricServer();
+app.UseHttpMetrics();
 
 app.UseRouting();
 

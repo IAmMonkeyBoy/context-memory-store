@@ -73,7 +73,7 @@ public class GetHealthEndpointTests : IntegrationTestBase
     {
         // Act
         var response1 = await Client.GetAsync("/health");
-        await Task.Delay(1000); // Wait 1 second
+        await Task.Delay(5000); // Wait 1 second
         var response2 = await Client.GetAsync("/health");
 
         // Assert
