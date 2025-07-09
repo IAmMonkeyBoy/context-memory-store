@@ -46,6 +46,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHealthCheckScoringService, HealthCheckScoringService>();
         services.AddSingleton<IMetricsCollectionService, MetricsCollectionService>();
         services.AddScoped<ICorrelationIdService, CorrelationIdService>();
+        services.AddScoped<IDiagnosticsService, DiagnosticsService>();
         
         // Memory cache for health check caching
         services.AddMemoryCache();

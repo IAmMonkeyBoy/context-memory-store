@@ -1,3 +1,4 @@
+using ContextMemoryStore.Core.Interfaces;
 using Microsoft.Extensions.Primitives;
 using Serilog.Context;
 
@@ -23,7 +24,7 @@ public class CorrelationIdMiddleware
         var correlationId = GetOrCreateCorrelationId(context);
         
         // Add correlation ID to response headers
-        context.Response.Headers.Add(CorrelationIdHeader, correlationId);
+        context.Response.Headers[CorrelationIdHeader] = correlationId;
         
         // Add correlation ID to HttpContext for easy access
         context.Items[CorrelationIdHeader] = correlationId;
@@ -80,41 +81,3 @@ public static class CorrelationIdMiddlewareExtensions
     }
 }
 
-/// <summary>
-/// Service for accessing correlation ID in other parts of the application
-/// </summary>
-public interface ICorrelationIdService
-{
-    /// <summary>
-    /// Gets the current correlation ID
-    /// </summary>
-    string? GetCorrelationId();
-}
-
-/// <summary>
-/// Implementation of correlation ID service
-/// </summary>
-public class CorrelationIdService : ICorrelationIdService
-{
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private const string CorrelationIdHeader = "X-Correlation-ID";
-
-    public CorrelationIdService(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
-    /// <summary>
-    /// Gets the current correlation ID
-    /// </summary>
-    public string? GetCorrelationId()
-    {
-        var context = _httpContextAccessor.HttpContext;
-        if (context?.Items.TryGetValue(CorrelationIdHeader, out var correlationId) == true)
-        {
-            return correlationId?.ToString();
-        }
-        
-        return null;
-    }
-}

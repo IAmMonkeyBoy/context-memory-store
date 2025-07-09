@@ -464,14 +464,131 @@ public class LogEntry
     public Dictionary<string, object>? Properties { get; set; }
 }
 
-// Additional supporting classes would be defined here for:
-// - ServiceConnectionStatus
-// - NetworkConnectivityTest
-// - ConnectionPoolStats
-// - ConfigurationValidationResult
-// - ConfigurationSource
-// - MemoryUsageDetails
-// - CpuUsageDetails
-// - DiskUsageDetails
-// - NetworkUsageDetails
-// - ResourceAlert
+/// <summary>
+/// Service connection status
+/// </summary>
+public class ServiceConnectionStatus
+{
+    public string Status { get; set; } = string.Empty;
+    public int ResponseTime { get; set; }
+    public DateTime LastConnected { get; set; }
+    public int ConnectionPoolSize { get; set; }
+    public int ActiveConnections { get; set; }
+    public Dictionary<string, object> AdditionalInfo { get; set; } = new();
+}
+
+/// <summary>
+/// Network connectivity test result
+/// </summary>
+public class NetworkConnectivityTest
+{
+    public required string Target { get; set; }
+    public required string Result { get; set; }
+    public int ResponseTime { get; set; }
+    public required string TestType { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+
+/// <summary>
+/// Connection pool statistics
+/// </summary>
+public class ConnectionPoolStats
+{
+    public int TotalConnections { get; set; }
+    public int ActiveConnections { get; set; }
+    public int IdleConnections { get; set; }
+    public int MaxConnections { get; set; }
+    public int ConnectionsCreated { get; set; }
+    public int ConnectionsDestroyed { get; set; }
+    public TimeSpan AverageConnectionLifetime { get; set; }
+}
+
+/// <summary>
+/// Configuration validation result
+/// </summary>
+public class ConfigurationValidationResult
+{
+    public required string Section { get; set; }
+    public bool IsValid { get; set; }
+    public List<string> ValidationErrors { get; set; } = new();
+    public List<string> ValidationWarnings { get; set; } = new();
+    public Dictionary<string, string> Settings { get; set; } = new();
+}
+
+/// <summary>
+/// Configuration source information
+/// </summary>
+public class ConfigurationSource
+{
+    public required string Source { get; set; }
+    public int Priority { get; set; }
+    public bool Loaded { get; set; }
+    public string? FilePath { get; set; }
+    public Dictionary<string, string> Settings { get; set; } = new();
+}
+
+/// <summary>
+/// Memory usage details
+/// </summary>
+public class MemoryUsageDetails
+{
+    public long WorkingSet { get; set; }
+    public long PrivateMemory { get; set; }
+    public long GcMemory { get; set; }
+    public double MemoryUtilization { get; set; }
+    public long AvailableMemory { get; set; }
+    public long TotalMemory { get; set; }
+    public long Gen0Collections { get; set; }
+    public long Gen1Collections { get; set; }
+    public long Gen2Collections { get; set; }
+}
+
+/// <summary>
+/// CPU usage details
+/// </summary>
+public class CpuUsageDetails
+{
+    public double CurrentUsage { get; set; }
+    public double AverageUsage { get; set; }
+    public double PeakUsage { get; set; }
+    public TimeSpan CpuTime { get; set; }
+    public int ProcessorCount { get; set; }
+    public double SystemCpuUsage { get; set; }
+}
+
+/// <summary>
+/// Disk usage details
+/// </summary>
+public class DiskUsageDetails
+{
+    public long TotalSpace { get; set; }
+    public long UsedSpace { get; set; }
+    public long AvailableSpace { get; set; }
+    public double DiskUtilization { get; set; }
+    public Dictionary<string, long> DirectorySizes { get; set; } = new();
+}
+
+/// <summary>
+/// Network usage details
+/// </summary>
+public class NetworkUsageDetails
+{
+    public long BytesSent { get; set; }
+    public long BytesReceived { get; set; }
+    public double NetworkUtilization { get; set; }
+    public int ActiveConnections { get; set; }
+    public Dictionary<string, long> ConnectionsByType { get; set; } = new();
+}
+
+/// <summary>
+/// Resource alert
+/// </summary>
+public class ResourceAlert
+{
+    public required string Type { get; set; }
+    public AlertSeverity Severity { get; set; }
+    public required string Message { get; set; }
+    public double Threshold { get; set; }
+    public double CurrentValue { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+}
