@@ -73,6 +73,10 @@ builder.Services.AddOptions<Neo4jOptions>()
     .BindConfiguration(Neo4jOptions.SectionName)
     .ValidateOnStart();
 
+builder.Services.AddOptions<OllamaOptions>()
+    .BindConfiguration(OllamaOptions.SectionName)
+    .ValidateOnStart();
+
 // Add Health Checks
 builder.Services.AddHealthChecks();
 
