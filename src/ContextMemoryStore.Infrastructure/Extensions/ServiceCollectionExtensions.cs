@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IGraphStoreService, Neo4jGraphStoreService>();
         services.AddScoped<ILLMService, OllamaLLMService>();
         services.AddScoped<IDocumentRepository, InMemoryDocumentRepository>();
+        services.AddScoped<ILifecycleService, LifecycleService>();
         
         return services;
     }

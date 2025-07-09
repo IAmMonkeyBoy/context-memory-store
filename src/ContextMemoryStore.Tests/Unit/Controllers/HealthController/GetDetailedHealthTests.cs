@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
 using ContextMemoryStore.Api.Controllers;
@@ -13,14 +14,12 @@ namespace ContextMemoryStore.Tests.Unit.Controllers.HealthController;
 /// </summary>
 public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthController>
 {
-    private readonly Mock<HealthCheckService> _healthCheckServiceMock;
     private readonly Mock<IVectorStoreService> _vectorStoreServiceMock;
     private readonly Mock<IGraphStoreService> _graphStoreServiceMock;
     private readonly Mock<ILLMService> _llmServiceMock;
 
     public GetDetailedHealthTests()
     {
-        _healthCheckServiceMock = CreateMock<HealthCheckService>();
         _vectorStoreServiceMock = CreateMock<IVectorStoreService>();
         _graphStoreServiceMock = CreateMock<IGraphStoreService>();
         _llmServiceMock = CreateMock<ILLMService>();
@@ -29,7 +28,6 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
     protected override Api.Controllers.HealthController CreateSubject()
     {
         return new Api.Controllers.HealthController(
-            _healthCheckServiceMock.Object,
             _vectorStoreServiceMock.Object,
             _graphStoreServiceMock.Object,
             _llmServiceMock.Object,
@@ -40,21 +38,15 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
     public async Task GetDetailedHealth_WhenAllServicesHealthy_ReturnsOkWithDetailedStatus()
     {
         // Arrange
-        var healthReport = new HealthReport(
-            new Dictionary<string, HealthReportEntry>(),
-            HealthStatus.Healthy,
-            TimeSpan.FromMilliseconds(100));
-
-        _healthCheckServiceMock
-            .Setup(x => x.CheckHealthAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(healthReport);
-
         _vectorStoreServiceMock
             .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         _vectorStoreServiceMock
             .Setup(x => x.GetCollectionCountAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(5);
+        _vectorStoreServiceMock
+            .Setup(x => x.GetVectorCountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(100);
 
         _graphStoreServiceMock
             .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
@@ -69,6 +61,9 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
         _llmServiceMock
             .Setup(x => x.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<string> { "llama3", "mxbai-embed-large" });
+
+        // Setup logging expectations
+        SetupLogging(LogLevel.Information, "Detailed health check completed");
 
         var controller = CreateSubject();
 
@@ -90,15 +85,6 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
     public async Task GetDetailedHealth_WhenQdrantUnhealthy_ReturnsServiceUnavailable()
     {
         // Arrange
-        var healthReport = new HealthReport(
-            new Dictionary<string, HealthReportEntry>(),
-            HealthStatus.Unhealthy,
-            TimeSpan.FromMilliseconds(100));
-
-        _healthCheckServiceMock
-            .Setup(x => x.CheckHealthAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(healthReport);
-
         _vectorStoreServiceMock
             .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
@@ -117,6 +103,9 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
             .Setup(x => x.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<string> { "llama3" });
 
+        // Setup logging expectations
+        SetupLogging(LogLevel.Information, "Detailed health check completed");
+
         var controller = CreateSubject();
 
         // Act
@@ -133,15 +122,6 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
     public async Task GetDetailedHealth_WhenQdrantThrowsException_HandlesGracefully()
     {
         // Arrange
-        var healthReport = new HealthReport(
-            new Dictionary<string, HealthReportEntry>(),
-            HealthStatus.Healthy,
-            TimeSpan.FromMilliseconds(100));
-
-        _healthCheckServiceMock
-            .Setup(x => x.CheckHealthAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(healthReport);
-
         _vectorStoreServiceMock
             .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Qdrant connection failed"));
@@ -160,38 +140,36 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
             .Setup(x => x.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<string> { "llama3" });
 
+        // Setup logging expectations
+        SetupLogging(LogLevel.Warning, "Qdrant health check failed");
+        SetupLogging(LogLevel.Information, "Detailed health check completed");
+
         var controller = CreateSubject();
 
         // Act
         var result = await controller.GetDetailedHealth();
 
         // Assert
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>();
         
-        // Should still return OK but with unhealthy Qdrant status
-        var okResult = result as OkObjectResult;
-        okResult.Should().NotBeNull();
+        // Should return service unavailable when exception is thrown
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(503);
     }
 
     [Fact]
     public async Task GetDetailedHealth_IncludesAllDependencyChecks()
     {
         // Arrange
-        var healthReport = new HealthReport(
-            new Dictionary<string, HealthReportEntry>(),
-            HealthStatus.Healthy,
-            TimeSpan.FromMilliseconds(100));
-
-        _healthCheckServiceMock
-            .Setup(x => x.CheckHealthAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(healthReport);
-
         _vectorStoreServiceMock
             .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         _vectorStoreServiceMock
             .Setup(x => x.GetCollectionCountAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(3);
+        _vectorStoreServiceMock
+            .Setup(x => x.GetVectorCountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(150);
 
         _graphStoreServiceMock
             .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
@@ -206,6 +184,9 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
         _llmServiceMock
             .Setup(x => x.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<string> { "llama3", "mxbai-embed-large" });
+
+        // Setup logging expectations
+        SetupLogging(LogLevel.Information, "Detailed health check completed");
 
         var controller = CreateSubject();
 
@@ -224,12 +205,28 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
     }
 
     [Fact]
-    public async Task GetDetailedHealth_WhenOverallHealthCheckFails_ReturnsServiceUnavailable()
+    public async Task GetDetailedHealth_WhenMultipleServicesThrowExceptions_ReturnsServiceUnavailable()
     {
         // Arrange
-        _healthCheckServiceMock
-            .Setup(x => x.CheckHealthAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Overall health check failed"));
+        _vectorStoreServiceMock
+            .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Vector store failed"));
+        
+        _graphStoreServiceMock
+            .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Graph store failed"));
+        
+        _llmServiceMock
+            .Setup(x => x.IsHealthyAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _llmServiceMock
+            .Setup(x => x.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "llama3" });
+
+        // Setup logging expectations for warnings and errors
+        SetupLogging(LogLevel.Warning, "Qdrant health check failed");
+        SetupLogging(LogLevel.Warning, "Neo4j health check failed");
+        SetupLogging(LogLevel.Information, "Detailed health check completed");
 
         var controller = CreateSubject();
 
@@ -242,13 +239,18 @@ public class GetDetailedHealthTests : MethodTestBase<Api.Controllers.HealthContr
         var objectResult = result as ObjectResult;
         objectResult!.StatusCode.Should().Be(503);
         
-        var response = objectResult.Value!.GetType().GetProperty("error")?.GetValue(objectResult.Value);
-        response.Should().Be("Detailed health check failed");
+        // Since individual service failures are handled gracefully,
+        // the response should have status="unhealthy" but no overall error field
+        var response = objectResult.Value!.GetType().GetProperty("status")?.GetValue(objectResult.Value);
+        response.Should().Be("unhealthy");
+        
+        // Verify dependencies section shows failed services
+        var dependencies = objectResult.Value!.GetType().GetProperty("dependencies")?.GetValue(objectResult.Value);
+        dependencies.Should().NotBeNull();
     }
 
     protected override void VerifyMocks()
     {
-        _healthCheckServiceMock.VerifyAll();
         _vectorStoreServiceMock.VerifyAll();
         _graphStoreServiceMock.VerifyAll();
         _llmServiceMock.VerifyAll();

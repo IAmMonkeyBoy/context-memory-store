@@ -37,4 +37,9 @@ public class PlaceholderVectorStoreService : IVectorStoreService
     {
         return Task.FromResult(1);
     }
+
+    public Task<bool> InitializeCollectionAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(true);
+    }
 }

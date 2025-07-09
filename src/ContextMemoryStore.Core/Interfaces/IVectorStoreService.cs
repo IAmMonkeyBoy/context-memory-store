@@ -55,6 +55,13 @@ public interface IVectorStoreService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection count</returns>
     Task<int> GetCollectionCountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Initializes the vector store collection if it doesn't exist
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if collection was created or already exists</returns>
+    Task<bool> InitializeCollectionAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

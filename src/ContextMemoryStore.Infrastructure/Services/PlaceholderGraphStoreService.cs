@@ -63,4 +63,9 @@ public class PlaceholderGraphStoreService : IGraphStoreService
             RelationshipCount = 0
         });
     }
+
+    public Task<bool> InitializeSchemaAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(true);
+    }
 }

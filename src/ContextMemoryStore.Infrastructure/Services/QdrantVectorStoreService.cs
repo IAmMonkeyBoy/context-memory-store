@@ -271,6 +271,23 @@ public class QdrantVectorStoreService : IVectorStoreService
     }
 
     /// <summary>
+    /// Initializes the vector store collection if it doesn't exist
+    /// </summary>
+    public async Task<bool> InitializeCollectionAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await EnsureCollectionExistsAsync(cancellationToken);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize collection");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Ensures the collection exists, creating it if necessary
     /// </summary>
     private async Task EnsureCollectionExistsAsync(CancellationToken cancellationToken = default)

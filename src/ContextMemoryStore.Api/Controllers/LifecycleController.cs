@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ContextMemoryStore.Core.Entities;
 using ContextMemoryStore.Core.Interfaces;
+using FluentValidation;
 using static ContextMemoryStore.Core.Interfaces.IMemoryService;
 
 namespace ContextMemoryStore.Api.Controllers;
@@ -11,11 +12,22 @@ namespace ContextMemoryStore.Api.Controllers;
 public class LifecycleController : ControllerBase
 {
     private readonly IMemoryService _memoryService;
+    private readonly ILifecycleService _lifecycleService;
+    private readonly IValidator<StartEngineRequest> _startRequestValidator;
+    private readonly IValidator<StopEngineRequest> _stopRequestValidator;
     private readonly ILogger<LifecycleController> _logger;
 
-    public LifecycleController(IMemoryService memoryService, ILogger<LifecycleController> logger)
+    public LifecycleController(
+        IMemoryService memoryService,
+        ILifecycleService lifecycleService,
+        IValidator<StartEngineRequest> startRequestValidator,
+        IValidator<StopEngineRequest> stopRequestValidator,
+        ILogger<LifecycleController> logger)
     {
         _memoryService = memoryService;
+        _lifecycleService = lifecycleService;
+        _startRequestValidator = startRequestValidator;
+        _stopRequestValidator = stopRequestValidator;
         _logger = logger;
     }
 
@@ -28,23 +40,46 @@ public class LifecycleController : ControllerBase
     [ProducesResponseType(typeof(StandardResponse<object>), 200)]
     [ProducesResponseType(typeof(StandardResponse<object>), 400)]
     [ProducesResponseType(typeof(StandardResponse<object>), 500)]
-    public async Task<IActionResult> Start([FromBody] StartEngineRequest request)
+    public async Task<IActionResult> Start([FromBody] StartEngineRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
+            // Validate request
+            var validationResult = await _startRequestValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var validationResponse = StandardResponse<object>.CreateError(
+                    "VALIDATION_ERROR",
+                    "Request validation failed",
+                    validationResult.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
+                );
+                return BadRequest(validationResponse);
+            }
+
             _logger.LogInformation("Starting memory engine for project: {ProjectId}", request.ProjectId);
             
-            // For now, return a success response
-            // TODO: Implement actual lifecycle management when infrastructure services are available
+            var result = await _lifecycleService.StartEngineAsync(request.ProjectId, request.Config, cancellationToken);
+            
+            if (!result.Success)
+            {
+                var errorResponse = StandardResponse<object>.CreateError(
+                    "STARTUP_FAILED",
+                    result.ErrorMessage ?? "Failed to start memory engine",
+                    new { project_id = request.ProjectId }
+                );
+                return StatusCode(500, errorResponse);
+            }
+
             var response = StandardResponse<object>.Success(new
             {
-                project_id = request.ProjectId,
-                session_id = Guid.NewGuid().ToString(),
-                started_at = DateTime.UtcNow,
-                config = request.Config
+                project_id = result.ProjectId,
+                session_id = result.SessionId,
+                started_at = result.Timestamp,
+                config = request.Config,
+                metadata = result.Metadata
             });
 
-            return await Task.FromResult(Ok(response));
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -69,24 +104,47 @@ public class LifecycleController : ControllerBase
     [ProducesResponseType(typeof(StandardResponse<object>), 200)]
     [ProducesResponseType(typeof(StandardResponse<object>), 400)]
     [ProducesResponseType(typeof(StandardResponse<object>), 500)]
-    public async Task<IActionResult> Stop([FromBody] StopEngineRequest request)
+    public async Task<IActionResult> Stop([FromBody] StopEngineRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
+            // Validate request
+            var validationResult = await _stopRequestValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                var validationResponse = StandardResponse<object>.CreateError(
+                    "VALIDATION_ERROR",
+                    "Request validation failed",
+                    validationResult.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
+                );
+                return BadRequest(validationResponse);
+            }
+
             _logger.LogInformation("Stopping memory engine for project: {ProjectId}", request.ProjectId);
             
-            // For now, return a success response
-            // TODO: Implement actual lifecycle management when infrastructure services are available
+            var result = await _lifecycleService.StopEngineAsync(request.ProjectId, request.CommitMessage, cancellationToken);
+            
+            if (!result.Success)
+            {
+                var errorResponse = StandardResponse<object>.CreateError(
+                    "SHUTDOWN_FAILED",
+                    result.ErrorMessage ?? "Failed to stop memory engine",
+                    new { project_id = request.ProjectId }
+                );
+                return StatusCode(500, errorResponse);
+            }
+
             var response = StandardResponse<object>.Success(new
             {
-                project_id = request.ProjectId,
-                snapshot_id = Guid.NewGuid().ToString(),
-                commit_hash = "abc123",
-                stopped_at = DateTime.UtcNow,
-                files_persisted = new[] { "vector-store.jsonl", "graph.cypher", "summary.md" }
+                project_id = result.ProjectId,
+                snapshot_id = result.SessionId,
+                commit_hash = result.CommitHash,
+                stopped_at = result.Timestamp,
+                files_persisted = result.FilesPersisted.ToArray(),
+                metadata = result.Metadata
             });
 
-            return await Task.FromResult(Ok(response));
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -111,28 +169,37 @@ public class LifecycleController : ControllerBase
     [ProducesResponseType(typeof(StandardResponse<object>), 200)]
     [ProducesResponseType(typeof(StandardResponse<object>), 404)]
     [ProducesResponseType(typeof(StandardResponse<object>), 500)]
-    public async Task<IActionResult> GetStatus([FromQuery] string projectId)
+    public async Task<IActionResult> GetStatus([FromQuery] string projectId, CancellationToken cancellationToken = default)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(projectId))
+            {
+                var badRequestResponse = StandardResponse<object>.CreateError(
+                    "INVALID_PROJECT_ID",
+                    "Project ID is required",
+                    new { parameter = "projectId", expected = "non-empty string", received = "null" }
+                );
+                return BadRequest(badRequestResponse);
+            }
+
             _logger.LogInformation("Getting status for project: {ProjectId}", projectId);
             
-            // Use the memory service to get statistics
-            var stats = await _memoryService.GetStatisticsAsync();
+            var systemStatus = await _lifecycleService.GetStatusAsync(projectId, cancellationToken);
             
             var response = StandardResponse<object>.Success(new
             {
-                project_id = projectId,
-                state = "active",
-                uptime_seconds = GetUptimeSeconds(),
-                document_count = stats.DocumentCount,
+                project_id = systemStatus.ProjectId,
+                state = systemStatus.State,
+                uptime_seconds = systemStatus.UptimeSeconds,
                 memory_usage = new
                 {
-                    documents = stats.DocumentCount,
-                    vectors = stats.VectorCount,
-                    relationships = stats.RelationshipCount
+                    documents = systemStatus.MemoryUsage.Documents,
+                    vectors = systemStatus.MemoryUsage.Vectors,
+                    relationships = systemStatus.MemoryUsage.Relationships
                 },
-                last_activity = stats.LastUpdated
+                last_activity = systemStatus.LastActivity,
+                service_health = systemStatus.ServiceHealth
             });
 
             return Ok(response);
