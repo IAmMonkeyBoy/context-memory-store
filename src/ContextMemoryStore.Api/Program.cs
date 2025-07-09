@@ -124,6 +124,10 @@ if (apiOptions.CorsEnabled)
     app.UseCors();
 }
 
+// Add Phase 5 Step 3 monitoring middleware
+app.UseCorrelationId();
+app.UsePerformanceMonitoring();
+
 // Add global exception handling
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
