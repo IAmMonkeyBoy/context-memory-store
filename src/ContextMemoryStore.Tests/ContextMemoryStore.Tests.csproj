@@ -31,6 +31,7 @@
     <!-- Test Containers (for integration tests with real services) -->
     <PackageReference Include="Testcontainers" Version="4.6.0" />
     <PackageReference Include="Testcontainers.Qdrant" Version="4.6.0" />
+    <PackageReference Include="Testcontainers.Neo4j" Version="4.6.0" />
     
     <!-- In-Memory Testing -->
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
