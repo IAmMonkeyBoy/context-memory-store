@@ -41,6 +41,19 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDocumentRepository, InMemoryDocumentRepository>();
         services.AddScoped<ILifecycleService, LifecycleService>();
         
+        // Register Phase 5 Step 3 enhanced monitoring services
+        services.AddScoped<IHealthCheckCacheService, HealthCheckCacheService>();
+        services.AddScoped<IHealthCheckScoringService, HealthCheckScoringService>();
+        services.AddSingleton<IMetricsCollectionService, MetricsCollectionService>();
+        services.AddScoped<ICorrelationIdService, CorrelationIdService>();
+        services.AddScoped<IDiagnosticsService, DiagnosticsService>();
+        
+        // Memory cache for health check caching
+        services.AddMemoryCache();
+        
+        // HTTP context accessor for correlation ID service
+        services.AddHttpContextAccessor();
+        
         return services;
     }
 

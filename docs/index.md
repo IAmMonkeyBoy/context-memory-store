@@ -13,6 +13,12 @@ This directory contains comprehensive documentation for all features and compone
 - [Comprehensive Testing](comprehensive-testing.md) - Advanced service functionality testing
 - [Service Validation Guide](service-validation.md) - Complete validation procedures and workflows
 
+## Monitoring & Diagnostics
+
+- [Health Monitoring System](health-monitoring.md) - Health check caching, scoring, trends, and correlation ID tracking
+- [Metrics Collection](metrics-collection.md) - Comprehensive metrics collection, Prometheus integration, and performance monitoring
+- [Diagnostics & Troubleshooting](diagnostics.md) - System diagnostics, performance analysis, and troubleshooting recommendations
+
 ## API Design & Specification
 
 - [API Design & OpenAPI Specification](api-design.md) - Complete API design, REST endpoints, MCP protocol integration, and implementation roadmap
@@ -62,12 +68,18 @@ This directory contains comprehensive documentation for all features and compone
 
 **Phase 4 Status**: ✅ **COMPLETED** - All objectives achieved, ready for Phase 5
 
-### Phase 5: Core API Foundation (🔄 Current - Ready to Begin)
-- Implementation of core REST API endpoints
-- Health check and lifecycle endpoint functionality
-- Configuration and metrics endpoints
-- Integration with existing service interfaces
-- API versioning and OpenAPI documentation
+### Phase 5: Core API Foundation (🔄 Current - Step 3 Complete)
+- ✅ **Step 1**: Service Integration Implementation  
+- ✅ **Step 2**: Core API Endpoints Implementation
+- ✅ **Step 3**: Health Monitoring and Metrics Enhancement
+  - Advanced health check caching with configurable TTL
+  - Health check scoring system with trend analysis
+  - Comprehensive metrics collection service
+  - Correlation ID middleware for request tracing
+  - Performance monitoring middleware
+  - Diagnostics controller with troubleshooting recommendations
+- 🔄 **Step 4**: Comprehensive Integration Testing (Next)
+- 🔄 **Step 5**: Documentation and Validation (Next)
 
 ### Phase 6: OpenAI Integration (Coming Soon)
 - ASP.NET Core 9 Web API setup
