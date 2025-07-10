@@ -9,14 +9,12 @@ namespace ContextMemoryStore.Tests.Common;
 /// </summary>
 public class TestDataManager
 {
-    private readonly DocumentFixture _documentFixture;
     private readonly List<string> _createdCollections;
     private readonly List<string> _createdGraphNodes;
     private readonly Random _random;
 
     public TestDataManager()
     {
-        _documentFixture = new DocumentFixture();
         _createdCollections = new List<string>();
         _createdGraphNodes = new List<string>();
         _random = new Random();
@@ -52,13 +50,19 @@ public class TestDataManager
 
         for (int i = 0; i < count; i++)
         {
-            var document = _documentFixture.Generate();
-            document.Metadata = new Dictionary<string, object>
-            {
-                ["collection"] = actualCollectionName,
-                ["test_id"] = $"test_{i}",
-                ["created_at"] = DateTime.UtcNow.ToString("O")
-            };
+            var document = DocumentFixture.Generate();
+            
+            // Add test-specific metadata
+            document.Metadata["collection"] = actualCollectionName;
+            document.Metadata["test_id"] = $"test_{i}";
+            document.Metadata["created_at"] = DateTime.UtcNow.ToString("O");
+
+            // Add test tags
+            var tags = document.Metadata.Tags;
+            tags.Add("test");
+            tags.Add(actualCollectionName);
+            document.Metadata.Tags = tags;
+
             documents.Add(document);
         }
 

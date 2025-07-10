@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Testcontainers.Qdrant;
 using Testcontainers.Neo4j;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using System.Net.Http;
 using Xunit;
 
@@ -47,7 +49,6 @@ public abstract class ServiceIntegrationTestBase : IAsyncLifetime
             _qdrantContainer = new QdrantBuilder()
                 .WithImage("qdrant/qdrant:v1.11.5")
                 .WithPortBinding(6333, 6333)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6333))
                 .Build();
             
             await _qdrantContainer.StartAsync();
@@ -55,13 +56,14 @@ public abstract class ServiceIntegrationTestBase : IAsyncLifetime
 
         if (RequiresNeo4j())
         {
+            // Note: For now, we'll use default Neo4j settings to avoid API issues
+            // In real implementation, we'd configure with proper credentials
             _neo4jContainer = new Neo4jBuilder()
                 .WithImage("neo4j:5.24-community")
-                .WithPassword("contextmemory")
+                .WithEnvironment("NEO4J_AUTH", "neo4j/contextmemory")
                 .WithEnvironment("NEO4J_PLUGINS", "[\"apoc\"]")
                 .WithPortBinding(7474, 7474)
                 .WithPortBinding(7687, 7687)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(7687))
                 .Build();
             
             await _neo4jContainer.StartAsync();

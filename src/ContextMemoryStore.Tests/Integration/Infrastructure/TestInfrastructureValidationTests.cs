@@ -15,12 +15,16 @@ namespace ContextMemoryStore.Tests.Integration.Infrastructure;
 public class TestInfrastructureValidationTests : ServiceIntegrationTestBase
 {
     private readonly TestDataManager _testDataManager;
-    private readonly TestCleanupHelper _cleanupHelper;
+    private TestCleanupHelper? _cleanupHelper;
 
     public TestInfrastructureValidationTests()
     {
         _testDataManager = new TestDataManager();
-        _cleanupHelper = new TestCleanupHelper(HttpClient, Logger);
+    }
+
+    private TestCleanupHelper GetCleanupHelper()
+    {
+        return _cleanupHelper ??= new TestCleanupHelper(HttpClient, Services.GetRequiredService<ILogger<TestCleanupHelper>>());
     }
 
     protected override bool RequiresQdrant() => false; // Test infrastructure without containers first
@@ -135,9 +139,10 @@ public class TestInfrastructureValidationTests : ServiceIntegrationTestBase
         var nodes = new[] { "test_node_1", "test_node_2" };
 
         // Act & Assert - Should not throw
-        await _cleanupHelper.CleanupQdrantCollections(collections);
-        await _cleanupHelper.CleanupNeo4jNodes(nodes);
-        await _cleanupHelper.PerformComprehensiveCleanup(_testDataManager);
+        var cleanupHelper = GetCleanupHelper();
+        await cleanupHelper.CleanupQdrantCollections(collections);
+        await cleanupHelper.CleanupNeo4jNodes(nodes);
+        await cleanupHelper.PerformComprehensiveCleanup(_testDataManager);
     }
 
     [Fact]
@@ -179,7 +184,7 @@ public class TestInfrastructureValidationTests : ServiceIntegrationTestBase
 
     public override async Task DisposeAsync()
     {
-        await _cleanupHelper.PerformComprehensiveCleanup(_testDataManager);
+        await GetCleanupHelper().PerformComprehensiveCleanup(_testDataManager);
         await base.DisposeAsync();
     }
 }
