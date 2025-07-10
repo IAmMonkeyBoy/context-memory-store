@@ -172,6 +172,113 @@ public class MemoryController : ControllerBase
     }
 
     /// <summary>
+    /// Streaming context analysis with real-time insights
+    /// </summary>
+    /// <param name="q">Analysis query</param>
+    /// <param name="limit">Maximum context documents</param>
+    /// <param name="includeRelationships">Include graph relationships</param>
+    /// <returns>Server-sent events stream of analysis insights</returns>
+    [HttpGet("analyze-stream")]
+    [ProducesResponseType(typeof(string), 200)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 400)]
+    [ProducesResponseType(typeof(StandardResponse<object>), 500)]
+    public async Task AnalyzeContextStream(
+        [FromQuery] string q,
+        [FromQuery] int limit = 5,
+        [FromQuery] bool includeRelationships = true,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            Response.StatusCode = 400;
+            await Response.WriteAsync("{\"error\": \"Query parameter 'q' is required\"}", cancellationToken);
+            return;
+        }
+
+        try
+        {
+            _logger.LogInformation("Starting streaming context analysis for query: {Query}", q);
+
+            // Set up Server-Sent Events
+            Response.ContentType = "text/event-stream";
+            Response.Headers.Append("Cache-Control", "no-cache");
+            Response.Headers.Append("Connection", "keep-alive");
+
+            // Initial status event
+            await WriteStreamEvent("status", "Starting context retrieval...", cancellationToken);
+
+            // Get relevant context
+            var contextOptions = new ContextOptions
+            {
+                MaxDocuments = limit,
+                IncludeRelationships = includeRelationships,
+                MinScore = 0.6
+            };
+
+            var context = await _memoryService.GetContextAsync(q, contextOptions, cancellationToken);
+            
+            await WriteStreamEvent("status", $"Found {context.TotalResults} relevant documents", cancellationToken);
+
+            if (context.Context.Documents.Any())
+            {
+                // Prepare analysis prompt
+                var analysisContext = string.Join("\n\n", context.Context.Documents.Select(d => $"Document: {d.Metadata.Title}\nContent: {d.Content}"));
+                var relationshipsContext = includeRelationships && context.Context.Relationships.Any()
+                    ? "\n\nRelationships:\n" + string.Join("\n", context.Context.Relationships.Select(r => $"- {r.Source} {r.Type} {r.Target}"))
+                    : "";
+
+                var analysisPrompt = $"Analyze the following context to answer the query: '{q}'\n\nContext:\n{analysisContext}{relationshipsContext}\n\nProvide insights, connections, and a comprehensive analysis:";
+
+                var messages = new List<ContextMemoryStore.Core.Interfaces.ChatMessage>
+                {
+                    new() { Role = "system", Content = "You are an expert context analyst. Provide streaming insights as you analyze the given context. Break your analysis into digestible chunks." },
+                    new() { Role = "user", Content = analysisPrompt }
+                };
+
+                await WriteStreamEvent("status", "Generating analysis...", cancellationToken);
+
+                // Stream the analysis using our enhanced LLM service
+                var analysisChunks = new List<string>();
+                await foreach (var chunk in _memoryService.StreamContextAnalysisAsync(messages, cancellationToken))
+                {
+                    if (!string.IsNullOrWhiteSpace(chunk))
+                    {
+                        analysisChunks.Add(chunk);
+                        await WriteStreamEvent("analysis", chunk, cancellationToken);
+                        await Response.Body.FlushAsync(cancellationToken);
+                    }
+                }
+
+                await WriteStreamEvent("status", "Analysis complete", cancellationToken);
+                await WriteStreamEvent("metadata", System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    documents_analyzed = context.TotalResults,
+                    relationships_found = context.Context.Relationships.Count,
+                    processing_time_ms = context.ProcessingTimeMs,
+                    total_analysis_chunks = analysisChunks.Count
+                }), cancellationToken);
+            }
+            else
+            {
+                await WriteStreamEvent("analysis", "No relevant context found for the given query.", cancellationToken);
+            }
+
+            await WriteStreamEvent("done", "Analysis stream completed", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in streaming context analysis for query: {Query}", q);
+            await WriteStreamEvent("error", $"Analysis failed: {ex.Message}", cancellationToken);
+        }
+    }
+
+    private async Task WriteStreamEvent(string eventType, string data, CancellationToken cancellationToken)
+    {
+        var eventData = $"event: {eventType}\ndata: {data}\n\n";
+        await Response.WriteAsync(eventData, cancellationToken);
+    }
+
+    /// <summary>
     /// Semantic search across all memory
     /// </summary>
     /// <param name="q">Search query</param>

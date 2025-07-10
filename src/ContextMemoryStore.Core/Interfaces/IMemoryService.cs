@@ -64,6 +64,14 @@ public interface IMemoryService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if healthy, false otherwise</returns>
     Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Streams context analysis using enhanced LLM capabilities
+    /// </summary>
+    /// <param name="messages">Chat messages for analysis</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Async enumerable of analysis chunks</returns>
+    IAsyncEnumerable<string> StreamContextAnalysisAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
