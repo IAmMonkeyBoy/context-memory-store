@@ -30,6 +30,14 @@ public interface ILLMService
     Task<string> GenerateChatCompletionAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Generates a streaming chat completion using the LLM
+    /// </summary>
+    /// <param name="messages">Conversation messages</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Async enumerable of response chunks</returns>
+    IAsyncEnumerable<string> GenerateStreamingChatCompletionAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Generates a summary of the given text
     /// </summary>
     /// <param name="text">Text to summarize</param>

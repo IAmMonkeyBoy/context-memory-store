@@ -436,6 +436,44 @@ public class MemoryService : IMemoryService
     }
 
     /// <summary>
+    /// Streams context analysis using enhanced LLM capabilities
+    /// </summary>
+    public async IAsyncEnumerable<string> StreamContextAnalysisAsync(IEnumerable<ChatMessage> messages, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting streaming context analysis");
+
+        if (!_featuresOptions.ContextualSummarization)
+        {
+            _logger.LogWarning("Contextual summarization is disabled, falling back to static response");
+            yield return "Streaming analysis is not available when contextual summarization is disabled.";
+            yield break;
+        }
+
+        IAsyncEnumerable<string> streamingResponse;
+        
+        try
+        {
+            // Use the enhanced LLM service streaming capability
+            streamingResponse = _llmService.GenerateStreamingChatCompletionAsync(messages, cancellationToken);
+        }
+        catch (Exception ex) when (!(ex is MemoryStoreException))
+        {
+            _logger.LogError(ex, "Error starting streaming context analysis");
+            throw new MemoryStoreException("STREAMING_ANALYSIS_ERROR", $"Error in streaming context analysis: {ex.Message}", innerException: ex);
+        }
+
+        await foreach (var chunk in streamingResponse)
+        {
+            if (!string.IsNullOrWhiteSpace(chunk))
+            {
+                yield return chunk;
+            }
+        }
+
+        _logger.LogInformation("Completed streaming context analysis");
+    }
+
+    /// <summary>
     /// Creates text chunks from document content
     /// </summary>
     private static List<string> CreateTextChunks(string content, int chunkSize, int chunkOverlap)

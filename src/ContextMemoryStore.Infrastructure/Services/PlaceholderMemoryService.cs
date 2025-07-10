@@ -90,4 +90,19 @@ public class PlaceholderMemoryService : IMemoryService
     {
         return Task.FromResult(true);
     }
+
+    public async IAsyncEnumerable<string> StreamContextAnalysisAsync(IEnumerable<ChatMessage> messages, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        // Placeholder streaming implementation
+        var chunks = new[] { "Placeholder ", "streaming ", "analysis ", "response." };
+        
+        foreach (var chunk in chunks)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                yield break;
+                
+            yield return chunk;
+            await Task.Delay(100, cancellationToken); // Small delay to simulate streaming
+        }
+    }
 }
