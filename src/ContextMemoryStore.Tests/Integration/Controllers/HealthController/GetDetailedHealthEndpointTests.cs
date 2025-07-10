@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using FluentAssertions;
 using ContextMemoryStore.Api;
@@ -167,39 +168,70 @@ public class GetDetailedHealthEndpointTests : IntegrationTestBase
     /// </summary>
     private class DetailedHealthResponse
     {
+        [JsonPropertyName("status")]
         public string Status { get; set; } = string.Empty;
+        
+        [JsonPropertyName("timestamp")]
         public string Timestamp { get; set; } = string.Empty;
+        
+        [JsonPropertyName("version")]
         public string Version { get; set; } = string.Empty;
+        
+        [JsonPropertyName("uptime_seconds")]
         public long UptimeSeconds { get; set; }
+        
+        [JsonPropertyName("dependencies")]
         public DependenciesResponse? Dependencies { get; set; }
     }
 
     private class DependenciesResponse
     {
+        [JsonPropertyName("qdrant")]
         public QdrantHealthResponse? Qdrant { get; set; }
+        
+        [JsonPropertyName("neo4j")]
         public Neo4jHealthResponse? Neo4j { get; set; }
+        
+        [JsonPropertyName("ollama")]
         public OllamaHealthResponse? Ollama { get; set; }
     }
 
     private class QdrantHealthResponse
     {
+        [JsonPropertyName("status")]
         public string Status { get; set; } = string.Empty;
+        
+        [JsonPropertyName("response_time_ms")]
         public int ResponseTimeMs { get; set; }
+        
+        [JsonPropertyName("collections")]
         public int Collections { get; set; }
     }
 
     private class Neo4jHealthResponse
     {
+        [JsonPropertyName("status")]
         public string Status { get; set; } = string.Empty;
+        
+        [JsonPropertyName("response_time_ms")]
         public int ResponseTimeMs { get; set; }
+        
+        [JsonPropertyName("nodes")]
         public int Nodes { get; set; }
+        
+        [JsonPropertyName("relationships")]
         public int Relationships { get; set; }
     }
 
     private class OllamaHealthResponse
     {
+        [JsonPropertyName("status")]
         public string Status { get; set; } = string.Empty;
+        
+        [JsonPropertyName("response_time_ms")]
         public int ResponseTimeMs { get; set; }
+        
+        [JsonPropertyName("models")]
         public string[] Models { get; set; } = Array.Empty<string>();
     }
 }

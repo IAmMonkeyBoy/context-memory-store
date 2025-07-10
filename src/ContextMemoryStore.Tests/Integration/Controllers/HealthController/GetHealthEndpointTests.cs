@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using FluentAssertions;
 using ContextMemoryStore.Api;
@@ -138,9 +139,16 @@ public class GetHealthEndpointTests : IntegrationTestBase
     /// </summary>
     private class HealthResponse
     {
+        [JsonPropertyName("status")]
         public string Status { get; set; } = string.Empty;
+        
+        [JsonPropertyName("timestamp")]
         public string Timestamp { get; set; } = string.Empty;
+        
+        [JsonPropertyName("version")]
         public string Version { get; set; } = string.Empty;
+        
+        [JsonPropertyName("uptime_seconds")]
         public long UptimeSeconds { get; set; }
     }
 }
