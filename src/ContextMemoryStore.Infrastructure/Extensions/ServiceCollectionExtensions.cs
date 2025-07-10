@@ -8,6 +8,7 @@ using Prometheus;
 using Neo4j.Driver;
 using Qdrant.Client;
 using OpenAI;
+using System.ClientModel;
 
 namespace ContextMemoryStore.Infrastructure.Extensions;
 
@@ -83,12 +84,37 @@ public static class ServiceCollectionExtensions
 
     private static void AddOpenAIClient(IServiceCollection services, IConfiguration configuration)
     {
+        // Configure HTTP client with enhanced settings for Ollama
+        services.AddHttpClient("OllamaClient", (provider, client) =>
+        {
+            var options = provider.GetRequiredService<IOptions<OllamaOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+            
+            // Add default headers if needed
+            client.DefaultRequestHeaders.Add("User-Agent", "ContextMemoryStore/1.0");
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            // Configure connection pooling settings
+            MaxConnectionsPerServer = 10, // Default from OllamaOptions.ConnectionPoolSize
+            UseCookies = false,
+            UseDefaultCredentials = false
+        })
+        // Add Polly retry policies if needed in the future
+        .SetHandlerLifetime(TimeSpan.FromMinutes(5)); // Default from OllamaOptions.ConnectionLifetimeMinutes
+
         services.AddSingleton<OpenAIClient>(provider =>
         {
             var options = provider.GetRequiredService<IOptions<OllamaOptions>>().Value;
+            var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient("OllamaClient");
+            
             var clientOptions = new OpenAIClientOptions()
             {
                 Endpoint = new Uri(options.BaseUrl)
+                // Note: Custom HttpClient transport configuration may need to be handled differently
+                // in OpenAI SDK v2.2.0 - keeping simpler approach for now
             };
             
             // For Ollama, we use a dummy API key since it doesn't require real authentication

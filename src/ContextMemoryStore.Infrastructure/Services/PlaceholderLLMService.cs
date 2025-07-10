@@ -39,6 +39,23 @@ public class PlaceholderLLMService : ILLMService
         return Task.FromResult($"Generated response for: {lastMessage}");
     }
 
+    public async IAsyncEnumerable<string> GenerateStreamingChatCompletionAsync(IEnumerable<ChatMessage> messages, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var lastMessage = messages.LastOrDefault()?.Content ?? "No messages";
+        var response = $"Generated streaming response for: {lastMessage}";
+        
+        // Simulate streaming by yielding chunks
+        var words = response.Split(' ');
+        foreach (var word in words)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                yield break;
+                
+            yield return word + " ";
+            await Task.Delay(10, cancellationToken); // Small delay to simulate streaming
+        }
+    }
+
     public Task<string> GenerateSummaryAsync(string text, int maxLength = 500, CancellationToken cancellationToken = default)
     {
         var summary = text.Length > maxLength 
