@@ -205,3 +205,4 @@ With Phase 4 complete, the next phase focuses on:
 
 - When updating CLAUDE.md, please review and update README.md to ensure that it remains up to date as well
 - If you are assigned to work on a GitHub issue, all pull requests related to that issue must be linked.
+- you should make sure your code builds and the tests you've created run as expected before you push a commit
