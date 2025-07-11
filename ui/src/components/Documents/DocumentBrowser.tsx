@@ -288,20 +288,25 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setPage(1);
   };
   
-  // Memoized filtered documents count
-  const hasActiveFilters = useMemo(() => {
-    return filters.documentTypes.length > 0 ||
-           filters.tags.length > 0 ||
-           filters.sourceTypes.length > 0 ||
-           filters.dateRange[0] !== null ||
-           filters.dateRange[1] !== null ||
-           filters.contentLength[0] > 0 ||
-           filters.contentLength[1] < 100000 ||
-           filters.relevanceThreshold > 0;
+  // Memoized active filter count
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.documentTypes.length > 0) count++;
+    if (filters.tags.length > 0) count++;
+    if (filters.sourceTypes.length > 0) count++;
+    if (filters.dateRange[0] !== null || filters.dateRange[1] !== null) count++;
+    if (filters.contentLength[0] > 0 || filters.contentLength[1] < 100000) count++;
+    if (filters.relevanceThreshold > 0) count++;
+    return count;
   }, [filters]);
   
+  // Memoized filtered documents count
+  const hasActiveFilters = useMemo(() => {
+    return activeFilterCount > 0;
+  }, [activeFilterCount]);
+  
   // Document card component
-  const DocumentCard: React.FC<{ document: DocumentItem }> = ({ document }) => (
+  const DocumentCard: React.FC<{ document: DocumentItem }> = ({ document: documentItem }) => (
     <Card 
       sx={{ 
         height: compact ? 'auto' : 280,
@@ -310,27 +315,27 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         cursor: 'pointer',
         '&:hover': { elevation: 4 },
       }}
-      onClick={() => handleDocumentView(document)}
+      onClick={() => handleDocumentView(documentItem)}
     >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-          {getDocumentIcon(document.type)}
+          {getDocumentIcon(documentItem.type)}
           <Box sx={{ ml: 1, flexGrow: 1, minWidth: 0 }}>
             <Typography 
               variant="subtitle2" 
               noWrap 
-              title={document.title}
+              title={documentItem.title}
               sx={{ fontWeight: 600 }}
             >
-              {document.title}
+              {documentItem.title}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {document.type} • {formatBytes(document.size)} • {formatDistanceToNow(new Date(document.updatedAt))}
+              {documentItem.type} • {formatBytes(documentItem.size)} • {formatDistanceToNow(new Date(documentItem.updatedAt))}
             </Typography>
           </Box>
-          {document.relevanceScore && (
+          {documentItem.relevanceScore && (
             <Chip 
-              label={`${Math.round(document.relevanceScore * 100)}%`}
+              label={`${Math.round(documentItem.relevanceScore * 100)}%`}
               size="small"
               color="primary"
               variant="outlined"
@@ -338,7 +343,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           )}
         </Box>
         
-        {document.summary && !compact && (
+        {documentItem.summary && !compact && (
           <Typography 
             variant="body2" 
             color="text.secondary"
@@ -351,13 +356,13 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
               mb: 1,
             }}
           >
-            {document.summary}
+            {documentItem.summary}
           </Typography>
         )}
         
-        {document.tags.length > 0 && (
+        {documentItem.tags.length > 0 && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-            {document.tags.slice(0, compact ? 2 : 4).map((tag) => (
+            {documentItem.tags.slice(0, compact ? 2 : 4).map((tag) => (
               <Chip 
                 key={tag}
                 label={tag}
@@ -365,9 +370,9 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
                 variant="outlined"
               />
             ))}
-            {document.tags.length > (compact ? 2 : 4) && (
+            {documentItem.tags.length > (compact ? 2 : 4) && (
               <Chip 
-                label={`+${document.tags.length - (compact ? 2 : 4)}`}
+                label={`+${documentItem.tags.length - (compact ? 2 : 4)}`}
                 size="small"
                 variant="outlined"
                 color="secondary"
@@ -380,7 +385,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
       {showActions && (
         <CardActions sx={{ pt: 0 }}>
           <Tooltip title="View document">
-            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDocumentView(document); }}>
+            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDocumentView(documentItem); }}>
               <ViewIcon />
             </IconButton>
           </Tooltip>
@@ -393,7 +398,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
             <IconButton 
               size="small" 
               color="error"
-              onClick={(e) => { e.stopPropagation(); handleDocumentDelete(document.id); }}
+              onClick={(e) => { e.stopPropagation(); handleDocumentDelete(documentItem.id); }}
             >
               <DeleteIcon />
             </IconButton>
@@ -404,7 +409,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   );
   
   // Document list item component
-  const DocumentListItem: React.FC<{ document: DocumentItem }> = ({ document }) => (
+  const DocumentListItem: React.FC<{ document: DocumentItem }> = ({ document: documentItem }) => (
     <ListItem
       sx={{ 
         border: 1,
@@ -414,20 +419,20 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         cursor: 'pointer',
         '&:hover': { bgcolor: 'grey.50' },
       }}
-      onClick={() => handleDocumentView(document)}
+      onClick={() => handleDocumentView(documentItem)}
     >
       <ListItemIcon>
-        {getDocumentIcon(document.type)}
+        {getDocumentIcon(documentItem.type)}
       </ListItemIcon>
       <MuiListItemText
         primary={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-              {document.title}
+              {documentItem.title}
             </Typography>
-            {document.relevanceScore && (
+            {documentItem.relevanceScore && (
               <Chip 
-                label={`${Math.round(document.relevanceScore * 100)}%`}
+                label={`${Math.round(documentItem.relevanceScore * 100)}%`}
                 size="small"
                 color="primary"
                 variant="outlined"
@@ -438,7 +443,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         secondary={
           <Box>
             <Typography variant="body2" color="text.secondary">
-              {document.type} • {formatBytes(document.size)} • {formatDistanceToNow(new Date(document.updatedAt))}
+              {documentItem.type} • {formatBytes(documentItem.size)} • {formatDistanceToNow(new Date(documentItem.updatedAt))}
             </Typography>
             {document.summary && (
               <Typography 
@@ -453,12 +458,12 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
                   mt: 0.5,
                 }}
               >
-                {document.summary}
+                {documentItem.summary}
               </Typography>
             )}
-            {document.tags.length > 0 && (
+            {documentItem.tags.length > 0 && (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-                {document.tags.slice(0, 6).map((tag) => (
+                {documentItem.tags.slice(0, 6).map((tag) => (
                   <Chip 
                     key={tag}
                     label={tag}
@@ -466,9 +471,9 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
                     variant="outlined"
                   />
                 ))}
-                {document.tags.length > 6 && (
+                {documentItem.tags.length > 6 && (
                   <Chip 
-                    label={`+${document.tags.length - 6}`}
+                    label={`+${documentItem.tags.length - 6}`}
                     size="small"
                     variant="outlined"
                     color="secondary"
@@ -482,7 +487,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
       {showActions && (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="View document">
-            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDocumentView(document); }}>
+            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDocumentView(documentItem); }}>
               <ViewIcon />
             </IconButton>
           </Tooltip>
@@ -495,7 +500,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
             <IconButton 
               size="small" 
               color="error"
-              onClick={(e) => { e.stopPropagation(); handleDocumentDelete(document.id); }}
+              onClick={(e) => { e.stopPropagation(); handleDocumentDelete(documentItem.id); }}
             >
               <DeleteIcon />
             </IconButton>
@@ -536,7 +541,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
               onClick={() => setShowFilters(!showFilters)}
               color={hasActiveFilters ? 'primary' : 'inherit'}
             >
-              Filters {hasActiveFilters && `(${Object.values(filters).flat().length})`}
+              Filters {hasActiveFilters && `(${activeFilterCount})`}
             </Button>
             
             <Button
