@@ -43,29 +43,25 @@ import {
   Description as DocumentIcon,
   Search as SearchIcon,
   AccountTree as RelationshipIcon,
-  TrendingUp as TrendingUpIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
   CheckCircle as SuccessIcon,
-  Speed as SpeedIcon,
   Memory as MemoryIcon,
   Analytics as AnalyticsIcon,
   Refresh as RefreshIcon,
   Download as DownloadIcon,
-  Optimize as OptimizeIcon,
+  Settings as OptimizeIcon,
   ExpandMore as ExpandMoreIcon,
   Timeline as TimelineIcon,
-  PieChart as PieChartIcon,
-  BarChart as BarChartIcon,
-  InsertChart as ChartIcon,
   FileCopy as DuplicateIcon,
   CloudUpload as UploadIcon,
   Api as ApiIcon,
   Sync as SyncIcon,
   GetApp as ImportIcon,
 } from '@mui/icons-material';
-import { formatBytes, formatDistanceToNow } from '@utils';
-import { api } from '@services';
+import { formatBytes } from '../../utils';
+import { formatDistanceToNow } from 'date-fns';
+import { api } from '../../services/api';
 
 export interface MemoryAnalytics {
   overview: {
@@ -348,7 +344,7 @@ const MemoryAnalytics: React.FC<MemoryAnalyticsProps> = ({
         </Card>
       </Grid>
       
-      {analytics?.documentAnalytics.duplicateDocuments.length > 0 && (
+      {(analytics?.documentAnalytics.duplicateDocuments?.length || 0) > 0 && (
         <Grid item xs={12}>
           <Card>
             <CardContent>
@@ -366,7 +362,7 @@ const MemoryAnalytics: React.FC<MemoryAnalyticsProps> = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {analytics.documentAnalytics.duplicateDocuments.map((doc) => (
+                    {(analytics?.documentAnalytics.duplicateDocuments || []).map((doc) => (
                       <TableRow key={doc.id}>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -430,13 +426,13 @@ const MemoryAnalytics: React.FC<MemoryAnalyticsProps> = ({
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2">Success Rate:</Typography>
                 <Typography variant="body2" fontWeight="bold">
-                  {Math.round(analytics?.searchAnalytics.searchSuccessRate * 100 || 0)}%
+                  {Math.round((analytics?.searchAnalytics.searchSuccessRate || 0) * 100)}%
                 </Typography>
               </Box>
               
               <LinearProgress
                 variant="determinate"
-                value={analytics?.searchAnalytics.searchSuccessRate * 100 || 0}
+                value={(analytics?.searchAnalytics.searchSuccessRate || 0) * 100}
                 color="primary"
               />
             </Stack>
@@ -504,7 +500,7 @@ const MemoryAnalytics: React.FC<MemoryAnalyticsProps> = ({
       <Grid item xs={12} md={4}>
         <Card>
           <CardContent sx={{ textAlign: 'center' }}>
-            <AccountTree sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
+            <RelationshipIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
             <Typography variant="h4" color="success.main">
               {Object.keys(analytics?.relationshipAnalytics.relationshipTypes || {}).length}
             </Typography>
@@ -553,7 +549,7 @@ const MemoryAnalytics: React.FC<MemoryAnalyticsProps> = ({
               {Object.entries(analytics?.relationshipAnalytics.relationshipTypes || {}).map(([type, count]) => (
                 <ListItem key={type}>
                   <ListItemIcon>
-                    <AccountTree />
+                    <RelationshipIcon />
                   </ListItemIcon>
                   <ListItemText
                     primary={type}

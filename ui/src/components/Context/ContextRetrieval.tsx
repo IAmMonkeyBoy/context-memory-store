@@ -48,8 +48,8 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { formatDistanceToNow } from '@utils';
-import { api } from '@services';
+import { formatDistanceToNow } from 'date-fns';
+import { api } from '../../services/api';
 
 export interface ContextQuery {
   query: string;

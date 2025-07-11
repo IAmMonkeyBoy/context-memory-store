@@ -58,9 +58,10 @@ import {
   Refresh as RefreshIcon,
   Clear as ClearIcon,
 } from '@mui/icons-material';
-import { formatBytes, formatDistanceToNow } from '@utils';
-import { useDebounce } from '@hooks';
-import { api } from '@services';
+import { formatBytes } from '../../utils';
+import { formatDistanceToNow } from 'date-fns';
+import { useDebounce } from '../../hooks';
+import { api } from '../../services/api';
 
 export interface DocumentItem {
   id: string;
