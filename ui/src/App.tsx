@@ -13,6 +13,7 @@ import AppShell from './components/Layout/AppShell';
 import Dashboard from './pages/Dashboard/Dashboard';
 import DocumentsIngest from './pages/Documents/DocumentsIngest';
 import SystemHealth from './pages/System/SystemHealth';
+import { MemoryManagement } from './pages/Memory';
 
 // Placeholder components for routes not yet implemented
 const PlaceholderPage: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -77,6 +78,7 @@ const App: React.FC = () => {
               />
               
               {/* Memory */}
+              <Route path="/memory/management" element={<MemoryManagement />} />
               <Route 
                 path="/memory/context" 
                 element={
