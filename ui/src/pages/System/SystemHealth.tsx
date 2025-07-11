@@ -5,43 +5,16 @@ import {
   Card, 
   CardContent, 
   Grid,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   CircularProgress,
   Alert
 } from '@mui/material';
-import {
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
-  Info as InfoIcon,
-} from '@mui/icons-material';
 import { useDetailedHealth, useSystemDiagnostics } from '@hooks';
+import { HealthStatusCard, HealthTrendChart } from '../../components/Dashboard';
+import { DiagnosticsPanel } from '../../components/Diagnostics';
 
 const SystemHealth: React.FC = () => {
   const { data: healthData, isLoading: healthLoading, error: healthError } = useDetailedHealth();
   const { data: diagnosticsData, isLoading: diagnosticsLoading } = useSystemDiagnostics();
-
-  const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'healthy': return <CheckCircleIcon color="success" />;
-      case 'degraded': return <WarningIcon color="warning" />;
-      case 'unhealthy': return <ErrorIcon color="error" />;
-      default: return <InfoIcon color="info" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'healthy': return 'success' as const;
-      case 'degraded': return 'warning' as const;
-      case 'unhealthy': return 'error' as const;
-      default: return 'default' as const;
-    }
-  };
 
   if (healthError) {
     return (
@@ -62,130 +35,68 @@ const SystemHealth: React.FC = () => {
         System Health
       </Typography>
       <Typography variant="body1" color="text.secondary" paragraph>
-        Monitor the health and status of all system components.
+        Real-time health monitoring and comprehensive system diagnostics.
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Overall Health */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Overall System Health
-              </Typography>
-              {healthLoading ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <CircularProgress size={24} />
-                  <Typography>Loading health data...</Typography>
-                </Box>
-              ) : (
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    {getStatusIcon(healthData?.status)}
-                    <Typography variant="h5">
-                      {healthData?.status || 'Unknown'}
-                    </Typography>
-                    <Chip 
-                      label={`${healthData?.healthScore || 0}%`}
-                      color={getStatusColor(healthData?.status)}
-                      variant="outlined"
-                    />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Health Score: {healthData?.healthScore || 0}% | 
-                    Trend: {healthData?.trend || 'Unknown'}
-                  </Typography>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
+        {/* Enhanced Health Status */}
+        <Grid item xs={12} lg={8}>
+          <HealthStatusCard
+            interval={30000}
+            useSSE={true}
+            showServices={true}
+            showConnectionStatus={true}
+          />
         </Grid>
 
-        {/* Service Dependencies */}
-        <Grid item xs={12} md={6}>
+        {/* Quick System Info */}
+        <Grid item xs={12} lg={4}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Service Dependencies
-              </Typography>
-              {healthLoading ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <CircularProgress size={24} />
-                  <Typography>Loading dependencies...</Typography>
-                </Box>
-              ) : (
-                <List>
-                  {Object.entries(healthData?.dependencies || {}).map(([service, details]: [string, any]) => (
-                    <ListItem key={service} divider>
-                      <ListItemIcon>
-                        {getStatusIcon(details.status)}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={service.charAt(0).toUpperCase() + service.slice(1)}
-                        secondary={`Response time: ${details.responseTime || 0}ms`}
-                      />
-                      <Chip
-                        label={details.status}
-                        color={getStatusColor(details.status)}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* System Information */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                System Information
+                Quick System Info
               </Typography>
               {diagnosticsLoading ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <CircularProgress size={24} />
-                  <Typography>Loading system information...</Typography>
+                  <Typography>Loading...</Typography>
                 </Box>
               ) : diagnosticsData ? (
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12}>
                     <Typography variant="subtitle2" color="text.secondary">
                       Platform
                     </Typography>
                     <Typography variant="body1">
-                      {diagnosticsData.systemInfo?.platform || 'Unknown'}
+                      {diagnosticsData.system?.osName || 'Unknown'}
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12}>
                     <Typography variant="subtitle2" color="text.secondary">
                       Architecture
                     </Typography>
                     <Typography variant="body1">
-                      {diagnosticsData.systemInfo?.architecture || 'Unknown'}
+                      {diagnosticsData.system?.architecture || 'Unknown'}
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12}>
                     <Typography variant="subtitle2" color="text.secondary">
-                      Total Memory
+                      Memory Usage
                     </Typography>
                     <Typography variant="body1">
-                      {diagnosticsData.systemInfo?.totalMemory 
-                        ? (diagnosticsData.systemInfo.totalMemory / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+                      {diagnosticsData.system?.workingSet 
+                        ? (diagnosticsData.system.workingSet / 1024 / 1024).toFixed(0) + ' MB'
                         : 'Unknown'
                       }
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12}>
                     <Typography variant="subtitle2" color="text.secondary">
-                      Uptime
+                      Process Uptime
                     </Typography>
                     <Typography variant="body1">
-                      {diagnosticsData.systemInfo?.uptime 
-                        ? Math.floor(diagnosticsData.systemInfo.uptime / 3600) + ' hours'
+                      {diagnosticsData.system?.processUptime 
+                        ? Math.floor(diagnosticsData.system.processUptime / 3600000) + ' hours'
                         : 'Unknown'
                       }
                     </Typography>
@@ -193,11 +104,33 @@ const SystemHealth: React.FC = () => {
                 </Grid>
               ) : (
                 <Alert severity="info">
-                  Detailed system diagnostics will be available in Phase 7.2.
+                  System information unavailable
                 </Alert>
               )}
             </CardContent>
           </Card>
+        </Grid>
+
+        {/* Health Trend Chart */}
+        <Grid item xs={12}>
+          <HealthTrendChart
+            data={[]} // This will be populated by real-time data
+            height={300}
+            timeRange="1h"
+            showResponseTimes={true}
+            allowTimeRangeSelection={true}
+          />
+        </Grid>
+
+        {/* Comprehensive Diagnostics */}
+        <Grid item xs={12}>
+          <DiagnosticsPanel
+            showRefresh={true}
+            showDownload={true}
+            defaultTab={0}
+            autoRefresh={false}
+            refreshInterval={60000}
+          />
         </Grid>
       </Grid>
     </Box>

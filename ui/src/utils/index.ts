@@ -1,5 +1,8 @@
 export { default as config } from './config';
 
+// Prometheus metrics parsing
+export * from './prometheusParser';
+
 // Utility functions
 export const formatBytes = (bytes: number, decimals = 2): string => {
   if (bytes === 0) return '0 Bytes';
@@ -47,21 +50,21 @@ export const generateId = (): string => {
          Math.random().toString(36).substring(2, 15);
 };
 
-export const getStatusColor = (status: string): string => {
+export const getStatusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
   switch (status.toLowerCase()) {
     case 'healthy':
     case 'success':
     case 'completed':
-      return '#4caf50'; // green
+      return 'success';
     case 'warning':
     case 'degraded':
     case 'processing':
-      return '#ff9800'; // orange
+      return 'warning';
     case 'error':
     case 'unhealthy':
     case 'failed':
-      return '#f44336'; // red
+      return 'error';
     default:
-      return '#9e9e9e'; // grey
+      return 'default';
   }
 };
