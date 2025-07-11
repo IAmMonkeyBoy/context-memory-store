@@ -46,22 +46,22 @@ export const navigationItems: NavigationItem[] = [
         path: '/memory/management' 
       },
       { 
-        id: 'context', 
+        id: 'document-browser', 
+        label: 'Browser', 
+        icon: 'search', 
+        path: '/memory/browser' 
+      },
+      { 
+        id: 'context-retrieval', 
         label: 'Context', 
-        icon: 'hub', 
+        icon: 'account_tree', 
         path: '/memory/context' 
       },
       { 
-        id: 'analysis', 
-        label: 'Analysis', 
+        id: 'memory-analytics', 
+        label: 'Analytics', 
         icon: 'analytics', 
-        path: '/memory/analysis' 
-      },
-      { 
-        id: 'relationships', 
-        label: 'Relationships', 
-        icon: 'account_tree', 
-        path: '/memory/relationships' 
+        path: '/memory/analytics' 
       }
     ]
   },

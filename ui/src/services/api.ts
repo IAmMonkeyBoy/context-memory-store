@@ -117,6 +117,40 @@ export class ContextMemoryStoreClient {
     search: (params: SearchQueryRequest) =>
       this.get<StandardResponse<{ results: SearchResult[]; pagination: any }>>('/memory/search', { params }),
     
+    // Advanced search with filters and pagination
+    searchAdvanced: (query: string, filters: any = {}, page: number = 1, pageSize: number = 20) =>
+      this.get<StandardResponse<any>>('/memory/search/advanced', { 
+        params: { q: query, page, pageSize, ...filters } 
+      }),
+    
+    // Get document by ID
+    getDocument: (id: string) =>
+      this.get<StandardResponse<any>>(`/memory/documents/${id}`),
+    
+    // Delete document
+    deleteDocument: (id: string) =>
+      this.delete<StandardResponse<any>>(`/memory/documents/${id}`),
+    
+    // Get document relationships
+    getRelationships: (documentId: string) =>
+      this.get<StandardResponse<any>>(`/memory/documents/${documentId}/relationships`),
+    
+    // Context retrieval with advanced options
+    retrieveContext: (query: any) =>
+      this.post<StandardResponse<any>>('/memory/context/retrieve', query),
+    
+    // Get search suggestions
+    getSuggestions: (query: string) =>
+      this.get<StandardResponse<string[]>>('/memory/search/suggestions', { params: { q: query } }),
+    
+    // Memory analytics
+    getAnalytics: () =>
+      this.get<StandardResponse<any>>('/memory/analytics'),
+    
+    // Memory optimization
+    optimize: () =>
+      this.post<StandardResponse<any>>('/memory/optimize'),
+    
     // Note: analyzeStream will be handled separately with EventSource
   };
 
