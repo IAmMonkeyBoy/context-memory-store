@@ -1,6 +1,7 @@
 // Re-export all hooks
 export * from './useApi';
 export * from './useSSE';
+export * from './useDocumentUpload';
 
 // Additional utility hooks
 import { useState, useEffect, useCallback } from 'react';

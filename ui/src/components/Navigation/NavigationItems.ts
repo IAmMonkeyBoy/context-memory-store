@@ -40,6 +40,12 @@ export const navigationItems: NavigationItem[] = [
     path: '/memory',
     children: [
       { 
+        id: 'management', 
+        label: 'Management', 
+        icon: 'storage', 
+        path: '/memory/management' 
+      },
+      { 
         id: 'context', 
         label: 'Context', 
         icon: 'hub', 
