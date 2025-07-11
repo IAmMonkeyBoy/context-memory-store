@@ -33,7 +33,7 @@ export interface UploadResponse {
   error?: string;
 }
 
-class DocumentUploadService {
+export class DocumentUploadService {
   private activeUploads = new Map<string, AbortController>();
   private uploadQueue: UploadFile[] = [];
   private isProcessing = false;

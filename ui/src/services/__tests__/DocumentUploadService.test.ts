@@ -34,7 +34,13 @@ describe('DocumentUploadService', () => {
 
   beforeEach(() => {
     service = new DocumentUploadService();
+    
+    // Create a proper File mock with arrayBuffer method
     mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+    Object.defineProperty(mockFile, 'arrayBuffer', {
+      value: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
+    });
+    
     mockUploadFile = {
       id: 'test-id',
       file: mockFile,
