@@ -13,7 +13,7 @@ import AppShell from './components/Layout/AppShell';
 import Dashboard from './pages/Dashboard/Dashboard';
 import DocumentsIngest from './pages/Documents/DocumentsIngest';
 import SystemHealth from './pages/System/SystemHealth';
-import { MemoryManagement } from './pages/Memory';
+import { MemoryManagement, DocumentBrowser, ContextRetrieval, MemoryAnalytics } from './pages/Memory';
 
 // Placeholder components for routes not yet implemented
 const PlaceholderPage: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -79,33 +79,9 @@ const App: React.FC = () => {
               
               {/* Memory */}
               <Route path="/memory/management" element={<MemoryManagement />} />
-              <Route 
-                path="/memory/context" 
-                element={
-                  <PlaceholderPage 
-                    title="Context Retrieval" 
-                    description="Retrieve relevant context based on queries with relationship analysis." 
-                  />
-                } 
-              />
-              <Route 
-                path="/memory/analysis" 
-                element={
-                  <PlaceholderPage 
-                    title="Memory Analysis" 
-                    description="Real-time streaming analysis of memory content with AI insights." 
-                  />
-                } 
-              />
-              <Route 
-                path="/memory/relationships" 
-                element={
-                  <PlaceholderPage 
-                    title="Relationship Visualization" 
-                    description="Interactive graph visualization of document relationships and connections." 
-                  />
-                } 
-              />
+              <Route path="/memory/browser" element={<DocumentBrowser />} />
+              <Route path="/memory/context" element={<ContextRetrieval />} />
+              <Route path="/memory/analytics" element={<MemoryAnalytics />} />
               
               {/* System */}
               <Route path="/system/health" element={<SystemHealth />} />
