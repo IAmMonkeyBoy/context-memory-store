@@ -66,6 +66,20 @@ export const navigationItems: NavigationItem[] = [
     ]
   },
   {
+    id: 'analysis',
+    label: 'Analysis',
+    icon: 'insights',
+    path: '/analysis',
+    children: [
+      { 
+        id: 'streaming-analysis', 
+        label: 'Streaming Analysis', 
+        icon: 'stream', 
+        path: '/analysis/streaming' 
+      }
+    ]
+  },
+  {
     id: 'system',
     label: 'System',
     icon: 'settings',

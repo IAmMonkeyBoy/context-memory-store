@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import DocumentsIngest from './pages/Documents/DocumentsIngest';
 import SystemHealth from './pages/System/SystemHealth';
 import { MemoryManagement, DocumentBrowser, ContextRetrieval, MemoryAnalytics } from './pages/Memory';
+import { StreamingAnalysis } from './pages/Analysis';
 
 // Placeholder components for routes not yet implemented
 const PlaceholderPage: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -82,6 +83,9 @@ const App: React.FC = () => {
               <Route path="/memory/browser" element={<DocumentBrowser />} />
               <Route path="/memory/context" element={<ContextRetrieval />} />
               <Route path="/memory/analytics" element={<MemoryAnalytics />} />
+              
+              {/* Analysis */}
+              <Route path="/analysis/streaming" element={<StreamingAnalysis />} />
               
               {/* System */}
               <Route path="/system/health" element={<SystemHealth />} />
