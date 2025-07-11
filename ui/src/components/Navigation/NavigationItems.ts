@@ -47,7 +47,7 @@ export const navigationItems: NavigationItem[] = [
       },
       { 
         id: 'document-browser', 
-        label: 'Browser', 
+        label: 'Document Browser', 
         icon: 'search', 
         path: '/memory/browser' 
       },

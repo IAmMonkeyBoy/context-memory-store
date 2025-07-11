@@ -61,7 +61,7 @@ import {
 import { formatBytes } from '../../utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useDebounce } from '../../hooks';
-import { api } from '../../services/api';
+import { api, AdvancedSearchFilters } from '../../services/api';
 
 export interface DocumentItem {
   id: string;
@@ -166,7 +166,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setError(null);
     
     try {
-      const filterParams = {
+      const filterParams: AdvancedSearchFilters = {
         types: searchFilters.documentTypes,
         tags: searchFilters.tags,
         sources: searchFilters.sourceTypes,
