@@ -23,13 +23,32 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
 } from '@mui/icons-material';
-import { useDetailedHealth, useSystemMetrics, useSystemDiagnostics } from '@hooks';
+import { useDetailedHealth, useSystemMetrics, useSystemDiagnostics, useRealtimeHealth, useRealtimeMetrics } from '@hooks';
 import { getStatusColor, formatBytes, formatDuration } from '@utils';
+import HealthStatusCard from '../../components/Dashboard/HealthStatusCard';
+import HealthTrendChart from '../../components/Dashboard/HealthTrendChart';
+import ServiceStatusPanel from '../../components/Dashboard/ServiceStatusPanel';
+import MetricsChartCard from '../../components/Dashboard/MetricsChartCard';
 
 const Dashboard: React.FC = () => {
+  // Original API hooks for fallback data
   const { data: healthData, isLoading: healthLoading, error: healthError } = useDetailedHealth();
   const { data: metricsData, isLoading: metricsLoading } = useSystemMetrics();
   const { data: diagnosticsData, isLoading: diagnosticsLoading } = useSystemDiagnostics();
+
+  // Real-time hooks for live updates
+  const { 
+    healthData: realtimeHealth, 
+    healthHistory, 
+    connectionInfo,
+    isConnected: healthConnected 
+  } = useRealtimeHealth(30000, true);
+  
+  const { 
+    metricsData: realtimeMetrics, 
+    metricsHistory,
+    isConnected: metricsConnected 
+  } = useRealtimeMetrics(10000);
 
   // Mock data for development
   const mockHealth = {
@@ -63,8 +82,9 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const health = healthData || mockHealth;
-  const metrics = metricsData || mockMetrics;
+  // Use real-time data if available, fallback to API data, then mock data
+  const health = realtimeHealth || healthData || mockHealth;
+  const metrics = realtimeMetrics || metricsData || mockMetrics;
 
   const getHealthIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -98,37 +118,18 @@ const Dashboard: React.FC = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {/* System Health Summary */}
-        <Grid item xs={12} md={6} lg={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                {getHealthIcon(health.status)}
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  System Health
-                </Typography>
-              </Box>
-              <Typography variant="h4" color="primary" gutterBottom>
-                {health.healthScore || 0}%
-              </Typography>
-              <Chip 
-                label={health.status || 'Unknown'} 
-                color={health.status === 'healthy' ? 'success' : 'warning'}
-                size="small"
-              />
-              <Box sx={{ mt: 2 }}>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={health.healthScore || 0} 
-                  color={health.status === 'healthy' ? 'success' : 'warning'}
-                />
-              </Box>
-            </CardContent>
-          </Card>
+        {/* Enhanced Health Status Card */}
+        <Grid item xs={12} md={6} lg={4}>
+          <HealthStatusCard
+            interval={30000}
+            useSSE={true}
+            showServices={true}
+            showConnectionStatus={true}
+          />
         </Grid>
 
         {/* API Performance */}
-        <Grid item xs={12} md={6} lg={3}>
+        <Grid item xs={12} md={6} lg={4}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -152,50 +153,29 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Memory Usage */}
-        <Grid item xs={12} md={6} lg={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <MemoryIcon color="primary" />
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  Documents
-                </Typography>
-              </Box>
-              <Typography variant="h4" color="primary" gutterBottom>
-                {metrics.memory?.totalDocuments || 0}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total documents stored
-              </Typography>
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {metrics.memory?.totalChunks || 0} chunks processed
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Storage Usage */}
-        <Grid item xs={12} md={6} lg={3}>
+        {/* Storage & Documents */}
+        <Grid item xs={12} md={6} lg={4}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <StorageIcon color="primary" />
                 <Typography variant="h6" sx={{ ml: 1 }}>
-                  Storage
+                  Storage & Documents
                 </Typography>
               </Box>
               <Typography variant="h4" color="primary" gutterBottom>
-                {formatBytes((metrics.memory?.vectorStoreSize || 0) + (metrics.memory?.graphStoreSize || 0))}
+                {metrics.memory?.totalDocuments || 0}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total storage used
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Total documents stored
               </Typography>
-              <Box sx={{ mt: 1 }}>
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Storage: {formatBytes((metrics.memory?.vectorStoreSize || 0) + (metrics.memory?.graphStoreSize || 0))}
+                </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Vector: {formatBytes(metrics.memory?.vectorStoreSize || 0)} | 
+                  {metrics.memory?.totalChunks || 0} chunks • 
+                  Vector: {formatBytes(metrics.memory?.vectorStoreSize || 0)} • 
                   Graph: {formatBytes(metrics.memory?.graphStoreSize || 0)}
                 </Typography>
               </Box>
@@ -203,34 +183,25 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Service Status */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Service Status
-              </Typography>
-              <List>
-                {Object.entries(health.dependencies || {}).map(([service, details]: [string, any]) => (
-                  <ListItem key={service} divider>
-                    <ListItemIcon>
-                      {getHealthIcon(details.status)}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={service.charAt(0).toUpperCase() + service.slice(1)}
-                      secondary={`Response time: ${details.responseTime || 0}ms`}
-                    />
-                    <Chip
-                      label={details.status}
-                      color={details.status === 'healthy' ? 'success' : 'warning'}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
+        {/* Health Trend Chart */}
+        <Grid item xs={12} md={6} lg={8}>
+          <HealthTrendChart
+            data={healthHistory}
+            height={300}
+            timeRange="1h"
+            showResponseTimes={true}
+            allowTimeRangeSelection={true}
+          />
+        </Grid>
+
+        {/* Enhanced Service Status */}
+        <Grid item xs={12} md={6} lg={4}>
+          <ServiceStatusPanel
+            dependencies={health.dependencies || {}}
+            healthScore={health.healthScore}
+            showDetails={true}
+            showResponseTimeTrends={true}
+          />
         </Grid>
 
         {/* System Resources */}
@@ -277,18 +248,15 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Recent Activity Placeholder */}
+        {/* Metrics Visualization */}
         <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Recent Activity
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Activity monitoring will be implemented in future phases.
-              </Typography>
-            </CardContent>
-          </Card>
+          <MetricsChartCard
+            data={metricsHistory}
+            height={350}
+            defaultTimeRange="6h"
+            defaultCategory="overview"
+            chartType="line"
+          />
         </Grid>
       </Grid>
     </Box>
