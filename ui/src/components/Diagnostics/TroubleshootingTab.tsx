@@ -64,13 +64,8 @@ const TroubleshootingTab: React.FC<TroubleshootingTabProps> = ({ data, isLoading
     );
   }
 
-  if (!data) {
-    return (
-      <Alert severity="info">
-        No troubleshooting information available. Check if the diagnostics service is running.
-      </Alert>
-    );
-  }
+  // Always show troubleshooting content, even if backend data is unavailable
+  // Static content (common issues, diagnostic tests) is still useful
 
   const troubleshooting = data.troubleshooting || {};
   const issues = troubleshooting.detectedIssues || [];
@@ -188,6 +183,18 @@ const TroubleshootingTab: React.FC<TroubleshootingTabProps> = ({ data, isLoading
       <Typography variant="h6" gutterBottom>
         Troubleshooting & Diagnostics
       </Typography>
+
+      {/* Notice when backend data is unavailable */}
+      {!data && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Backend diagnostic data unavailable
+          </Typography>
+          <Typography variant="body2">
+            This is normal in development mode. The troubleshooting guides and diagnostic tools below are still available to help you identify and resolve common issues.
+          </Typography>
+        </Alert>
+      )}
 
       {/* Search */}
       <Card sx={{ mb: 3 }}>

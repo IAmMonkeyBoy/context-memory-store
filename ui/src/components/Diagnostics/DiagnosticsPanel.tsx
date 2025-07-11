@@ -188,8 +188,13 @@ const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
 
       <CardContent sx={{ p: 0 }}>
         {error && (
-          <Alert severity="error" sx={{ m: 2 }}>
-            Failed to load diagnostic data: {error.message || 'Unknown error'}
+          <Alert severity="warning" sx={{ m: 2 }}>
+            Some diagnostic data is unavailable: {error.message || 'Unknown error'}
+            {error.message?.includes('404') && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                This is expected in development mode. Static diagnostic tools are still available below.
+              </Typography>
+            )}
             <Button onClick={handleRefresh} sx={{ ml: 2 }}>
               Retry
             </Button>
@@ -209,39 +214,38 @@ const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
           </Box>
         )}
 
-        {!error && (
-          <>
-            {/* Tabs Navigation */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs
-                value={activeTab}
-                onChange={handleTabChange}
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label="diagnostics tabs"
-              >
-                {tabs.map((tab, index) => (
-                  <Tab
-                    key={index}
-                    label={tab.label}
-                    icon={tab.icon}
-                    iconPosition="start"
-                    id={`diagnostics-tab-${index}`}
-                    aria-controls={`diagnostics-tabpanel-${index}`}
-                    sx={{ minHeight: 48 }}
-                  />
-                ))}
-              </Tabs>
-            </Box>
+        {/* Always show tabs - they have graceful fallbacks for missing data */}
+        <>
+          {/* Tabs Navigation */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              aria-label="diagnostics tabs"
+            >
+              {tabs.map((tab, index) => (
+                <Tab
+                  key={index}
+                  label={tab.label}
+                  icon={tab.icon}
+                  iconPosition="start"
+                  id={`diagnostics-tab-${index}`}
+                  aria-controls={`diagnostics-tabpanel-${index}`}
+                  sx={{ minHeight: 48 }}
+                />
+              ))}
+            </Tabs>
+          </Box>
 
-            {/* Tab Content */}
-            {tabs.map((tab, index) => (
-              <TabPanel key={index} value={activeTab} index={index}>
-                {tab.component}
-              </TabPanel>
-            ))}
-          </>
-        )}
+          {/* Tab Content */}
+          {tabs.map((tab, index) => (
+            <TabPanel key={index} value={activeTab} index={index}>
+              {tab.component}
+            </TabPanel>
+          ))}
+        </>
       </CardContent>
     </Card>
   );
