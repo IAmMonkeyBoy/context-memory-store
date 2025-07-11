@@ -6,7 +6,7 @@ using static ContextMemoryStore.Core.Interfaces.IMemoryService;
 namespace ContextMemoryStore.Api.Controllers;
 
 [ApiController]
-[Route("metrics")]
+[Route("v1/metrics")]
 public class MetricsController : ControllerBase
 {
     private readonly IMemoryService _memoryService;

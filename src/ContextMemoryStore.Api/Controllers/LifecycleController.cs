@@ -7,7 +7,7 @@ using static ContextMemoryStore.Core.Interfaces.IMemoryService;
 namespace ContextMemoryStore.Api.Controllers;
 
 [ApiController]
-[Route("lifecycle")]
+[Route("v1/lifecycle")]
 [Produces("application/json")]
 public class LifecycleController : ControllerBase
 {

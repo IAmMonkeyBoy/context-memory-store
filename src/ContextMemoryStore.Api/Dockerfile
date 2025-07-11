@@ -20,8 +20,8 @@ COPY . .
 WORKDIR /src/ContextMemoryStore.Api
 RUN dotnet build -c Release -o /app/build
 
-# Publish the application
-RUN dotnet publish -c Release -o /app/publish
+# Publish the application including static files
+RUN dotnet publish -c Release -o /app/publish --verbosity normal
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
@@ -30,8 +30,11 @@ WORKDIR /app
 # Create directory for project data
 RUN mkdir -p /app/project/logs
 
-# Copy published application
+# Copy published application (should include wwwroot if present during publish)
 COPY --from=build /app/publish .
+
+# Also explicitly copy static files if they exist
+COPY --from=build /src/ContextMemoryStore.Api/wwwroot /app/wwwroot
 
 # Set environment variables
 ENV ASPNETCORE_ENVIRONMENT=Docker

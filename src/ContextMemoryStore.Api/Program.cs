@@ -113,9 +113,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// API versioning - all controllers will be under /v1
-app.UsePathBase("/v1");
-
 app.UseHttpsRedirection();
 
 // Use CORS if enabled
@@ -126,9 +123,6 @@ if (apiOptions.CorsEnabled)
 
 // Serve static files from wwwroot (for React UI)
 app.UseStaticFiles();
-
-// Serve index.html for SPA routes that don't match API routes
-app.MapFallbackToFile("index.html");
 
 // Add Phase 5 Step 3 monitoring middleware
 app.UseCorrelationId();
@@ -144,6 +138,9 @@ app.UseHttpMetrics();
 app.UseRouting();
 
 app.MapControllers();
+
+// Serve index.html for SPA routes that don't match API routes
+app.MapFallbackToFile("index.html");
 
 // Health check endpoints
 app.MapHealthChecks("/health");

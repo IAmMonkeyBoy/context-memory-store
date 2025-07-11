@@ -158,3 +158,52 @@ export interface AnalysisChunk {
   content: string;
   timestamp: string;
 }
+
+// Additional Lifecycle Types
+export interface LifecycleResult {
+  success: boolean;
+  projectId: string;
+  sessionId?: string;
+  timestamp: string;
+  filesPersisted: string[];
+  commitHash?: string;
+  errorMessage?: string;
+  metadata: Record<string, any>;
+}
+
+export interface SystemStatus {
+  project_id: string;
+  state: string;
+  uptime_seconds: number;
+  memory_usage: {
+    documents: number;
+    vectors: number;
+    relationships: number;
+  };
+  last_activity?: string;
+  service_health: Record<string, boolean>;
+}
+
+export interface ProjectConfig {
+  projectId: string;
+  llmConfig?: {
+    model?: string;
+    baseUrl?: string;
+    apiKey?: string;
+  };
+  vectorConfig?: {
+    dimensions?: number;
+    distance?: string;
+  };
+  graphConfig?: {
+    username?: string;
+    password?: string;
+    database?: string;
+  };
+  ingestionConfig?: {
+    chunkSize?: number;
+    chunkOverlap?: number;
+    autoSummarize?: boolean;
+    extractRelationships?: boolean;
+  };
+}

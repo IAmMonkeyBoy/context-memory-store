@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { config } from '@utils';
+import { config } from '../utils/config';
 import {
   StandardResponse,
   HealthResponse,
@@ -12,7 +12,10 @@ import {
   StartEngineRequest,
   StopEngineRequest,
   SearchResult,
-} from '@types';
+  LifecycleResult,
+  SystemStatus,
+  ProjectConfig,
+} from '../../types';
 
 // Advanced search filters interface
 export interface AdvancedSearchFilters {
@@ -168,18 +171,6 @@ export class ContextMemoryStoreClient {
     // Note: analyzeStream will be handled separately with EventSource
   };
 
-  // Lifecycle endpoints
-  lifecycle = {
-    start: (request: StartEngineRequest) =>
-      this.post<StandardResponse<any>>('/lifecycle/start', request),
-    
-    stop: (request: StopEngineRequest) =>
-      this.post<StandardResponse<any>>('/lifecycle/stop', request),
-    
-    getStatus: (projectId: string) =>
-      this.get<StandardResponse<any>>('/lifecycle/status', { params: { projectId } }),
-  };
-
   // Diagnostics endpoints (without /api prefix since we're already using /v1)
   diagnostics = {
     getSystem: () => this.get<SystemDiagnostics>('/diagnostics/system'),
@@ -207,6 +198,18 @@ export class ContextMemoryStoreClient {
   // Metrics endpoint (Prometheus format)
   metrics = {
     getPrometheus: () => this.get<string>('/metrics'),
+  };
+
+  // Lifecycle endpoints
+  lifecycle = {
+    start: (request: StartEngineRequest) => 
+      this.post<StandardResponse<LifecycleResult>>('/lifecycle/start', request),
+    
+    stop: (request: StopEngineRequest) => 
+      this.post<StandardResponse<LifecycleResult>>('/lifecycle/stop', request),
+    
+    getStatus: (projectId: string) => 
+      this.get<StandardResponse<SystemStatus>>(`/lifecycle/status?projectId=${encodeURIComponent(projectId)}`),
   };
 }
 
