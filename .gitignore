@@ -191,3 +191,17 @@ project/exports/
 
 # Windows shortcuts
 *.lnk
+
+# React/Node.js Frontend (ui/)
+ui/node_modules/
+ui/dist/
+ui/build/
+ui/.vite/
+ui/.next/
+ui/coverage/
+ui/.nyc_output/
+ui/.cache/
+ui/.parcel-cache/
+ui/storybook-static/
+ui/.storybook/build/
+ui/*.tsbuildinfo
