@@ -8,7 +8,7 @@ using static ContextMemoryStore.Core.Interfaces.IMemoryService;
 namespace ContextMemoryStore.Api.Controllers;
 
 [ApiController]
-[Route("memory")]
+[Route("v1/memory")]
 [Produces("application/json")]
 public class MemoryController : ControllerBase
 {

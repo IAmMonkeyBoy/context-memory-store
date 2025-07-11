@@ -13,6 +13,7 @@ import AppShell from './components/Layout/AppShell';
 import Dashboard from './pages/Dashboard/Dashboard';
 import DocumentsIngest from './pages/Documents/DocumentsIngest';
 import SystemHealth from './pages/System/SystemHealth';
+import SystemLifecycle from './pages/System/SystemLifecycle';
 import { MemoryManagement, DocumentBrowser, ContextRetrieval, MemoryAnalytics } from './pages/Memory';
 
 // Placeholder components for routes not yet implemented
@@ -103,15 +104,7 @@ const App: React.FC = () => {
                   />
                 } 
               />
-              <Route 
-                path="/system/lifecycle" 
-                element={
-                  <PlaceholderPage 
-                    title="Lifecycle Management" 
-                    description="Control memory engine lifecycle, project configuration, and persistence." 
-                  />
-                } 
-              />
+              <Route path="/system/lifecycle" element={<SystemLifecycle />} />
               
               {/* Catch-all route */}
               <Route 
