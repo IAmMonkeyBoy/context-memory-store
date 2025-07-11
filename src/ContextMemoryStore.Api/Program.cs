@@ -124,6 +124,12 @@ if (apiOptions.CorsEnabled)
     app.UseCors();
 }
 
+// Serve static files from wwwroot (for React UI)
+app.UseStaticFiles();
+
+// Serve index.html for SPA routes that don't match API routes
+app.MapFallbackToFile("index.html");
+
 // Add Phase 5 Step 3 monitoring middleware
 app.UseCorrelationId();
 app.UsePerformanceMonitoring();
