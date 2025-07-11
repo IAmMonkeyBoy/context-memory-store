@@ -28,6 +28,34 @@ export interface AdvancedSearchFilters {
   endDate?: string;
 }
 
+// Advanced search response interface
+export interface AdvancedSearchResponse {
+  results: Array<{
+    id: string;
+    title: string;
+    content: string;
+    type: string;
+    size: number;
+    createdAt: string;
+    updatedAt: string;
+    tags: string[];
+    sourceType: string;
+    relevanceScore: number;
+    metadata: Record<string, any>;
+    summary?: string;
+    thumbnail?: string;
+  }>;
+  totalCount: number;
+  aggregations?: {
+    tags?: Record<string, number>;
+    types?: Record<string, number>;
+    sources?: Record<string, number>;
+  };
+  queryTime?: number;
+  page: number;
+  pageSize: number;
+}
+
 // Create axios instance with default configuration
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
@@ -133,7 +161,7 @@ export class ContextMemoryStoreClient {
     
     // Advanced search with filters and pagination
     searchAdvanced: (query: string, filters: AdvancedSearchFilters = {}, page: number = 1, pageSize: number = 20) =>
-      this.get<StandardResponse<any>>('/memory/search/advanced', { 
+      this.get<StandardResponse<AdvancedSearchResponse>>('/memory/search/advanced', { 
         params: { q: query, page, pageSize, ...filters } 
       }),
     

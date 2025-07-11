@@ -61,7 +61,7 @@ import {
 import { formatBytes } from '../../utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useDebounce } from '../../hooks';
-import { api, AdvancedSearchFilters } from '../../services/api';
+import { api, AdvancedDocumentSearchFilters } from '../../services/api';
 
 export interface DocumentItem {
   id: string;
@@ -79,7 +79,7 @@ export interface DocumentItem {
   thumbnail?: string;
 }
 
-export interface SearchFilters {
+export interface DocumentDocumentSearchFilters {
   documentTypes: string[];
   dateRange: [Date | null, Date | null];
   tags: string[];
@@ -128,7 +128,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<SearchFilters>({
+  const [filters, setFilters] = useState<DocumentSearchFilters>({
     documentTypes: [],
     dateRange: [null, null],
     tags: [],
@@ -150,7 +150,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   // Search function
   const searchDocuments = useCallback(async (
     searchQuery: string,
-    searchFilters: SearchFilters,
+    searchFilters: DocumentSearchFilters,
     searchPage: number,
     searchPageSize: number,
     searchSortField: SortField,
@@ -166,7 +166,7 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setError(null);
     
     try {
-      const filterParams: AdvancedSearchFilters = {
+      const filterParams: AdvancedDocumentSearchFilters = {
         types: searchFilters.documentTypes,
         tags: searchFilters.tags,
         sources: searchFilters.sourceTypes,
