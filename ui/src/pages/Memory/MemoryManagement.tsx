@@ -73,11 +73,14 @@ const MemoryManagement: React.FC = () => {
   const handleUploadComplete = (fileId: string, success: boolean, error?: string) => {
     if (success) {
       setTotalDocuments(prev => prev + 1);
-      // In a real implementation, we'd get the actual memory size from the API
-      const uploadedFile = uploadedFiles.find(f => f.id === fileId);
-      if (uploadedFile) {
-        setTotalMemorySize(prev => prev + uploadedFile.file.size);
-      }
+      // Find file in current state to avoid stale closure issues
+      setUploadedFiles(currentFiles => {
+        const uploadedFile = currentFiles.find(f => f.id === fileId);
+        if (uploadedFile) {
+          setTotalMemorySize(prev => prev + uploadedFile.file.size);
+        }
+        return currentFiles;
+      });
     }
   };
 

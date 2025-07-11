@@ -199,6 +199,31 @@ describe('DocumentUploadService', () => {
       expect(results.get('success-file')?.success).toBe(true);
       expect(results.get('error-file')?.success).toBe(false);
     });
+
+    it('should queue files when already processing and process them after completion', async () => {
+      const firstBatch = [{ ...mockUploadFile, id: 'batch1-file1' }];
+      const secondBatch = [{ ...mockUploadFile, id: 'batch2-file1' }];
+
+      // Mock successful uploads with delay
+      mockXMLHttpRequest.addEventListener.mockImplementation((event, callback) => {
+        if (event === 'load') {
+          setTimeout(() => callback(), 50);
+        }
+      });
+
+      // Start first batch
+      const firstPromise = service.batchUpload(firstBatch);
+      
+      // Immediately start second batch (should queue)
+      const secondPromise = service.batchUpload(secondBatch);
+
+      const [firstResults, secondResults] = await Promise.all([firstPromise, secondPromise]);
+
+      expect(firstResults.size).toBe(1);
+      expect(secondResults.size).toBe(1);
+      expect(firstResults.get('batch1-file1')?.success).toBe(true);
+      expect(secondResults.get('batch2-file1')?.success).toBe(true);
+    });
   });
 
   describe('cancelUpload', () => {

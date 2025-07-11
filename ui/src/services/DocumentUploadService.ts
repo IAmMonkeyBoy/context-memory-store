@@ -159,8 +159,17 @@ class DocumentUploadService {
     // Add files to queue
     this.uploadQueue.push(...files);
     
+    // If already processing, wait for current batch to complete then process new files
     if (this.isProcessing) {
-      return results;
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!this.isProcessing) {
+            clearInterval(checkInterval);
+            // Process the newly queued files
+            this.batchUpload([], options).then(resolve);
+          }
+        }, 100);
+      });
     }
 
     this.isProcessing = true;

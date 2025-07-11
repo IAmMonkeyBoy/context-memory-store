@@ -102,10 +102,17 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
   }, [uploads.length, onFilesUploaded]);
 
-  const accept = acceptedFileTypes.reduce((acc, type) => {
-    acc[type] = [];
-    return acc;
-  }, {} as Record<string, string[]>);
+  // Map file extensions to MIME types for react-dropzone
+  const accept = {
+    'text/plain': ['.txt'],
+    'text/markdown': ['.md'],
+    'application/pdf': ['.pdf'],
+    'application/msword': ['.doc'],
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    'application/json': ['.json'],
+    'application/x-yaml': ['.yaml', '.yml'],
+    'text/yaml': ['.yaml', '.yml'],
+  };
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     if (acceptedFiles.length > 0) {
