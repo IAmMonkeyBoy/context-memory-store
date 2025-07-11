@@ -94,6 +94,12 @@ export const navigationItems: NavigationItem[] = [
         label: 'Lifecycle', 
         icon: 'power_settings_new', 
         path: '/system/lifecycle' 
+      },
+      { 
+        id: 'configuration', 
+        label: 'Configuration', 
+        icon: 'tune', 
+        path: '/system/configuration' 
       }
     ]
   }
