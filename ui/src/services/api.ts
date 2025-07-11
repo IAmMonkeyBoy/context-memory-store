@@ -209,7 +209,7 @@ export class ContextMemoryStoreClient {
       this.post<StandardResponse<LifecycleResult>>('/lifecycle/stop', request),
     
     getStatus: (projectId: string) => 
-      this.get<StandardResponse<SystemStatus>>(`/lifecycle/status?projectId=${encodeURIComponent(projectId)}`),
+      this.get<StandardResponse<SystemStatus>>('/lifecycle/status', { params: { projectId } }),
   };
 }
 

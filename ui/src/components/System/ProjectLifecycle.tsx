@@ -98,7 +98,7 @@ const ProjectLifecycle: React.FC<ProjectLifecycleProps> = ({ className }) => {
   const startMutation = useMutation({
     mutationFn: (request: StartEngineRequest) => api.lifecycle.start(request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lifecycle-status'] });
+      queryClient.invalidateQueries({ queryKey: ['lifecycle-status', projectId] });
     },
   });
 
@@ -106,7 +106,7 @@ const ProjectLifecycle: React.FC<ProjectLifecycleProps> = ({ className }) => {
   const stopMutation = useMutation({
     mutationFn: (request: StopEngineRequest) => api.lifecycle.stop(request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lifecycle-status'] });
+      queryClient.invalidateQueries({ queryKey: ['lifecycle-status', projectId] });
     },
   });
 
