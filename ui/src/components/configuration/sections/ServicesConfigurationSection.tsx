@@ -198,6 +198,7 @@ export const ServicesConfigurationSection: React.FC<ServicesConfigurationSection
                       <MenuItem value="cosine">Cosine</MenuItem>
                       <MenuItem value="dot">Dot Product</MenuItem>
                       <MenuItem value="euclidean">Euclidean</MenuItem>
+                      <MenuItem value="manhattan">Manhattan</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -397,7 +398,6 @@ export const ServicesConfigurationSection: React.FC<ServicesConfigurationSection
                     >
                       <MenuItem value="TRUST_ALL_CERTIFICATES">Trust All Certificates</MenuItem>
                       <MenuItem value="TRUST_SYSTEM_CA_SIGNED_CERTIFICATES">Trust System CA</MenuItem>
-                      <MenuItem value="TRUST_CUSTOM_CA_SIGNED_CERTIFICATES">Trust Custom CA</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
