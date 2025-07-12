@@ -69,6 +69,7 @@ interface ProfileManagerProps {
   onProfileSelected?: (profile: ConfigurationProfile) => void;
   onProfileEdit?: (profile: ConfigurationProfile) => void;
   onProfileCompare?: (profiles: ConfigurationProfile[]) => void;
+  onTestConfiguration?: (profile: ConfigurationProfile) => void;
 }
 
 const ENVIRONMENT_COLORS: Record<EnvironmentType, string> = {
@@ -91,7 +92,8 @@ const VALIDATION_ICONS = {
 export const ProfileManager: React.FC<ProfileManagerProps> = ({
   onProfileSelected,
   onProfileEdit,
-  onProfileCompare
+  onProfileCompare,
+  onTestConfiguration
 }) => {
   // State management
   const [profiles, setProfiles] = useState<ConfigurationProfile[]>([]);
