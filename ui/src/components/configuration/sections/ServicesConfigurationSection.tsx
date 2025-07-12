@@ -592,7 +592,7 @@ export const ServicesConfigurationSection: React.FC<ServicesConfigurationSection
                       fullWidth
                       size="small"
                       placeholder="Add chat model"
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           const value = (e.target as HTMLInputElement).value;
                           if (value.trim()) {
