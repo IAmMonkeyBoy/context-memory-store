@@ -167,9 +167,14 @@ curl -X POST http://localhost:7474/db/data/cypher \
 
 **Memory/Performance Issues:**
 ```bash
-# Check Neo4j memory settings in docker-compose.yml
-# Increase NEO4J_dbms_memory_heap_initial_size if needed
-# Increase NEO4J_dbms_memory_heap_max_size if needed
+# Adjust Neo4j memory settings via environment variables:
+export NEO4J_INITIAL_HEAP_SIZE=1g      # Increase initial heap
+export NEO4J_MAX_HEAP_SIZE=2g          # Increase maximum heap
+export NEO4J_PAGE_CACHE_SIZE=1g        # Increase page cache
+
+# Restart services to apply new memory settings
+docker-compose down
+docker-compose up -d neo4j
 ```
 
 ### 4. Ollama LLM Service Issues

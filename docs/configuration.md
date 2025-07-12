@@ -162,6 +162,11 @@ export GRAPH_STORE_URI="bolt://localhost:7687"
 export GRAPH_STORE_USERNAME="neo4j"
 export GRAPH_STORE_PASSWORD="contextmemory"
 
+# Neo4j Memory Configuration
+export NEO4J_INITIAL_HEAP_SIZE="512m"
+export NEO4J_MAX_HEAP_SIZE="1g"
+export NEO4J_PAGE_CACHE_SIZE="512m"
+
 # API
 export API_HOST="0.0.0.0"
 export API_PORT="8080"

@@ -128,6 +128,17 @@ graph_store:
   backup_path: "/project/graph.cypher"
 ```
 
+### Environment Variables
+
+Neo4j memory settings can be customized via environment variables:
+
+```bash
+# Neo4j Memory Configuration
+NEO4J_INITIAL_HEAP_SIZE=512m     # Initial JVM heap size
+NEO4J_MAX_HEAP_SIZE=1g           # Maximum JVM heap size  
+NEO4J_PAGE_CACHE_SIZE=512m       # Page cache for data caching
+```
+
 For detailed configuration options, see [Configuration Documentation](docs/configuration.md).
 
 ---
