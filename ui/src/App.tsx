@@ -16,6 +16,7 @@ import SystemHealth from './pages/System/SystemHealth';
 import SystemLifecycle from './pages/System/SystemLifecycle';
 import { MemoryManagement, DocumentBrowser, ContextRetrieval, MemoryAnalytics } from './pages/Memory';
 import ConfigurationPage from './pages/ConfigurationPage';
+import { ProfileManagementPage } from './pages/ProfileManagementPage';
 
 // Placeholder components for routes not yet implemented
 const PlaceholderPage: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -107,6 +108,7 @@ const App: React.FC = () => {
               />
               <Route path="/system/lifecycle" element={<SystemLifecycle />} />
               <Route path="/system/configuration" element={<ConfigurationPage />} />
+              <Route path="/system/profiles" element={<ProfileManagementPage />} />
               
               {/* Catch-all route */}
               <Route 

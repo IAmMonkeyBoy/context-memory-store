@@ -100,6 +100,12 @@ export const navigationItems: NavigationItem[] = [
         label: 'Configuration', 
         icon: 'tune', 
         path: '/system/configuration', 
+      },
+      { 
+        id: 'profiles', 
+        label: 'Configuration Profiles', 
+        icon: 'account_tree', 
+        path: '/system/profiles', 
       }
     ]
   }
