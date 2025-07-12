@@ -22,18 +22,23 @@ import {
 } from '@mui/icons-material';
 
 import type { ConfigurationProfile } from '../types/configurationProfiles';
+import type { SystemConfiguration } from '../types/configuration';
+import type { EnvironmentType } from '../types/configurationProfiles';
 import { ProfileManager } from '../components/configuration/ProfileManager';
 import { ProfileEditor } from '../components/configuration/ProfileEditor';
 import { ProfileComparison } from '../components/configuration/ProfileComparison';
+import { ConfigurationTestingDashboard } from '../components/configuration/ConfigurationTestingDashboard';
 import { profileManager } from '../utils/configurationProfiles';
 
-type ViewMode = 'list' | 'edit' | 'compare';
+type ViewMode = 'list' | 'edit' | 'compare' | 'testing';
 
 export const ProfileManagementPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedProfile, setSelectedProfile] = useState<ConfigurationProfile | null>(null);
   const [comparisonProfiles, setComparisonProfiles] = useState<ConfigurationProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentConfiguration, setCurrentConfiguration] = useState<SystemConfiguration | null>(null);
+  const [currentEnvironment, setCurrentEnvironment] = useState<EnvironmentType>('development');
 
   // Initialize with some sample profiles for demonstration
   useEffect(() => {
@@ -99,8 +104,20 @@ export const ProfileManagementPage: React.FC = () => {
   };
 
   const handleProfileSaved = (profile: ConfigurationProfile) => {
-    // Optionally refresh the profile list or show a success message
+    // Update current configuration if this profile is active
+    if (profile.isActive) {
+      setCurrentConfiguration(profile.configuration);
+      setCurrentEnvironment(profile.environment);
+    }
     console.log('Profile saved:', profile.name);
+  };
+
+  const handleTestConfiguration = (profile?: ConfigurationProfile) => {
+    if (profile) {
+      setCurrentConfiguration(profile.configuration);
+      setCurrentEnvironment(profile.environment);
+    }
+    setViewMode('testing');
   };
 
   const handleBackToList = () => {
@@ -137,6 +154,7 @@ export const ProfileManagementPage: React.FC = () => {
         {viewMode === 'list' && 'Profile Management'}
         {viewMode === 'edit' && `Edit: ${selectedProfile?.name}`}
         {viewMode === 'compare' && 'Profile Comparison'}
+        {viewMode === 'testing' && 'Configuration Testing'}
       </Typography>
     </Breadcrumbs>
   );
@@ -176,6 +194,33 @@ export const ProfileManagementPage: React.FC = () => {
           </Fade>
         );
 
+      case 'testing':
+        return (
+          <Fade in timeout={300}>
+            <Box>
+              {currentConfiguration ? (
+                <ConfigurationTestingDashboard
+                  configuration={currentConfiguration}
+                  environment={currentEnvironment}
+                  onConfigurationChange={(config) => {
+                    setCurrentConfiguration(config);
+                    // Optionally save changes back to active profile
+                  }}
+                />
+              ) : (
+                <Box sx={{ textAlign: 'center', p: 4 }}>
+                  <Typography variant="h6" gutterBottom>
+                    No Configuration Selected
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Please select a profile from the Profile Management page to test its configuration.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Fade>
+        );
+
       default:
         return (
           <Fade in timeout={300}>
@@ -184,6 +229,7 @@ export const ProfileManagementPage: React.FC = () => {
                 onProfileSelected={handleProfileSelected}
                 onProfileEdit={handleProfileEdit}
                 onProfileCompare={handleProfileCompare}
+                onTestConfiguration={handleTestConfiguration}
               />
             </Box>
           </Fade>
