@@ -3,7 +3,8 @@
  * Phase 7.4.4 - Types for configuration testing, validation, and quality assurance
  */
 
-import type { SystemConfiguration, EnvironmentType } from './configuration';
+import type { SystemConfiguration } from './configuration';
+import type { EnvironmentType } from './configurationProfiles';
 
 // =============================================================================
 // Core Testing Types
@@ -394,6 +395,9 @@ export interface IntegrationEvent {
 
 export type {
   // Re-export from configuration types for convenience
-  SystemConfiguration,
+  SystemConfiguration
+} from './configuration';
+
+export type {
   EnvironmentType
-};
+} from './configurationProfiles';

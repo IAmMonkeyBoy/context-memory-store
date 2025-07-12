@@ -19,7 +19,8 @@ import type {
   TestPriority,
   ExecutionStatus
 } from '../types/configurationTesting';
-import type { SystemConfiguration, EnvironmentType } from '../types/configuration';
+import type { SystemConfiguration } from '../types/configuration';
+import type { EnvironmentType } from '../types/configurationProfiles';
 
 // =============================================================================
 // Utility Functions
@@ -540,7 +541,7 @@ export const configurationTests: ConfigurationTest[] = [
       }
 
       // Check CORS configuration
-      if (config.api.corsEnabled && config.api.corsOrigins.includes('*')) {
+      if (config.api.cors.enabled && config.api.cors.origins.includes('*')) {
         vulnerabilities.push('CORS allows all origins (*) - potential security risk');
         recommendations.push('Specify explicit CORS origins instead of using wildcard');
         securityScore -= 15;

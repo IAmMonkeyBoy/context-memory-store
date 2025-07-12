@@ -22,7 +22,8 @@ import {
 } from '@mui/icons-material';
 
 import type { ConfigurationProfile } from '../types/configurationProfiles';
-import type { SystemConfiguration, EnvironmentType } from '../types/configuration';
+import type { SystemConfiguration } from '../types/configuration';
+import type { EnvironmentType } from '../types/configurationProfiles';
 import { ProfileManager } from '../components/configuration/ProfileManager';
 import { ProfileEditor } from '../components/configuration/ProfileEditor';
 import { ProfileComparison } from '../components/configuration/ProfileComparison';

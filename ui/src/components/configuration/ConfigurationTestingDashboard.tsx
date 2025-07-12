@@ -62,7 +62,8 @@ import type {
   TestSuite,
   HealthScore
 } from '../../types/configurationTesting';
-import type { SystemConfiguration, EnvironmentType } from '../../types/configuration';
+import type { SystemConfiguration } from '../../types/configuration';
+import type { EnvironmentType } from '../../types/configurationProfiles';
 import {
   configurationTests,
   testRunner,
