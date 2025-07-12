@@ -37,11 +37,11 @@ import {
   Close as CloseIcon,
   Visibility as PreviewIcon,
   Compare as CompareIcon,
-  Download as ExportIcon,
-  Upload as ImportIcon,
+  FileDownload as ExportIcon,
+  FileUpload as ImportIcon,
   Refresh as ResetIcon,
   AccountTree as InheritanceIcon,
-  Validation as ValidateIcon,
+  CheckCircle as ValidateIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
 
