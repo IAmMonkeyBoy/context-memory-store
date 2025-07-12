@@ -56,7 +56,7 @@ import type {
   ProfileComparison,
   ProfileDifference
 } from '../../types/configurationProfiles';
-import { profileComparator } from '../../utils/configurationProfiles';
+import { profileComparator, profileManager, profileInheritanceManager } from '../../utils/configurationProfiles';
 
 interface ProfileComparisonProps {
   profiles: ConfigurationProfile[];
@@ -177,6 +177,54 @@ export const ProfileComparison: React.FC<ProfileComparisonProps> = ({
         ? prev.filter(s => s !== section)
         : [...prev, section]
     );
+  };
+
+  const handleMergeProfiles = () => {
+    if (profiles.length < 2 || !comparison || !onMerge) return;
+
+    try {
+      const [indexA, indexB] = selectedProfiles;
+      const profileA = profiles[indexA];
+      const profileB = profiles[indexB];
+      
+      if (profileA && profileB) {
+        // Create a merged profile using inheritance logic
+        // ProfileB inherits from ProfileA (ProfileA as base, ProfileB as override)
+        const mergedProfile = profileInheritanceManager.applyInheritance(profileB, profileA);
+        
+        // Update the merged profile with a new name and metadata
+        const finalMergedProfile = {
+          ...mergedProfile,
+          id: `merged-${Date.now()}`,
+          name: `Merged: ${profileA.name} + ${profileB.name}`,
+          description: `Merged configuration from ${profileA.name} and ${profileB.name}`,
+          category: 'custom' as const,
+          isDefault: false,
+          isActive: false,
+          isReadOnly: false,
+          inheritanceChain: [profileA.id, profileB.id],
+          metadata: {
+            ...mergedProfile.metadata,
+            author: 'system',
+            purpose: 'Merged Profile',
+            dependencies: [profileA.id, profileB.id],
+            warnings: [
+              ...profileA.metadata.warnings,
+              ...profileB.metadata.warnings,
+              'This is a merged profile from multiple sources'
+            ].filter((w, i, arr) => arr.indexOf(w) === i), // Remove duplicates
+            validationStatus: 'unknown' as const
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        onMerge(finalMergedProfile);
+      }
+    } catch (error) {
+      console.error('Failed to merge profiles:', error);
+      // Could add error notification here
+    }
   };
 
   const renderProfileHeader = (profile: ConfigurationProfile, side: 'A' | 'B') => (
@@ -462,10 +510,8 @@ export const ProfileComparison: React.FC<ProfileComparisonProps> = ({
             <Button
               variant="contained"
               startIcon={<MergeIcon />}
-              onClick={() => {
-                // Handle merge logic
-                console.log('Merge profiles');
-              }}
+              onClick={handleMergeProfiles}
+              disabled={!onMerge}
             >
               Merge Profiles
             </Button>

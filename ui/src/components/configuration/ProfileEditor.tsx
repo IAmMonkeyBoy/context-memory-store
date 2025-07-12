@@ -137,7 +137,11 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
     setUnsavedChanges(true);
   };
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
+    setSaveDialogOpen(true);
+  };
+
+  const handleConfirmSave = async () => {
     if (!profile) return;
 
     try {
@@ -149,9 +153,15 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
       if (onSave) {
         onSave(savedProfile);
       }
+      
+      setSaveDialogOpen(false);
     } catch (error) {
       console.error('Failed to save profile:', error);
     }
+  };
+
+  const handleCancelSave = () => {
+    setSaveDialogOpen(false);
   };
 
   const handleValidate = async () => {
@@ -517,7 +527,7 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
             <Button
               variant="contained"
               startIcon={<SaveIcon />}
-              onClick={handleSave}
+              onClick={handleSaveClick}
               disabled={!unsavedChanges || profile.isReadOnly}
             >
               Save
@@ -605,8 +615,8 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">Save</Button>
+          <Button onClick={handleCancelSave}>Cancel</Button>
+          <Button onClick={handleConfirmSave} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
     </Box>
