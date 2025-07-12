@@ -99,7 +99,7 @@ export const navigationItems: NavigationItem[] = [
         id: 'configuration', 
         label: 'Configuration', 
         icon: 'tune', 
-        path: '/system/configuration' 
+        path: '/system/configuration', 
       }
     ]
   }
