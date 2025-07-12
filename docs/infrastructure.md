@@ -30,7 +30,10 @@ The Context Memory Store uses a microservices architecture with the following co
 - **Data**: Persistent volumes for data, logs, import, plugins
 - **Credentials**: Configurable via NEO4J_USERNAME/NEO4J_PASSWORD
 - **APOC Plugin**: 5.15.0-core (automatically downloaded)
-- **Memory Settings**: Default settings in use (parameterization requires Neo4j 5.15 environment variable syntax investigation)
+- **Memory Settings**: Fully parameterized via environment variables:
+  - `NEO4J_INITIAL_HEAP_SIZE` (default: 512m) - Initial JVM heap size
+  - `NEO4J_MAX_HEAP_SIZE` (default: 1g) - Maximum JVM heap size  
+  - `NEO4J_PAGE_CACHE_SIZE` (default: 512m) - Page cache for data caching
 - **APOC Configuration**: Consolidated into docker-compose.yml environment variables
 
 ### Ollama (External LLM API)
