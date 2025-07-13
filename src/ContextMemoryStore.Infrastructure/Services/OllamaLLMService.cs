@@ -275,8 +275,9 @@ public class OllamaLLMService : ILLMService
             {
                 response = JsonSerializer.Deserialize<ChatCompletionStreamResponse>(jsonData);
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
+                logger.LogWarning(ex, "Malformed JSON encountered: {JsonData}", jsonData);
                 // Skip malformed JSON chunks
                 continue;
             }
