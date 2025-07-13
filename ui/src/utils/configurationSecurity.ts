@@ -146,12 +146,16 @@ export class ConfigurationEncryption {
       case 'pbkdf2':
         return await this.deriveKeyPBKDF2(passwordBuffer, salt, iterations);
       case 'scrypt':
-        // Note: scrypt is not natively supported in Web Crypto API
-        // In real implementation, use a library like scrypt-js
+        /**
+         * @note scrypt is not natively supported in Web Crypto API.
+         * In real implementation, use a library like scrypt-js.
+         */
         throw new Error('scrypt not implemented - use a proper scrypt library');
       case 'argon2id':
-        // Note: Argon2 is not natively supported in Web Crypto API
-        // In real implementation, use a library like argon2-browser
+        /**
+         * @note Argon2 is not natively supported in Web Crypto API.
+         * In real implementation, use a library like argon2-browser.
+         */
         throw new Error('argon2id not implemented - use a proper argon2 library');
       default:
         throw new Error(`Unsupported key derivation function: ${kdf}`);
