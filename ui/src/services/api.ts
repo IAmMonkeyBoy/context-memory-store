@@ -152,9 +152,9 @@ export class ContextMemoryStoreClient {
     getRelationships: (documentId: string) =>
       this.get<StandardResponse<any>>(`/memory/documents/${documentId}/relationships`),
     
-    // Context retrieval with advanced options
-    retrieveContext: (query: any) =>
-      this.post<StandardResponse<any>>('/memory/context/retrieve', query),
+    // Context retrieval with advanced options (should use GET with params, not POST)
+    retrieveContext: (params: any) =>
+      this.get<StandardResponse<any>>('/memory/context', { params }),
     
     // Get search suggestions
     getSuggestions: (query: string) =>

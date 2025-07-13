@@ -27,7 +27,7 @@ import {
   Article as LogIcon,
   Analytics as MetricsIcon,
   Notifications as AlertIcon,
-  Health as HealthIcon,
+  HealthAndSafety as HealthIcon,
   Timeline as TracingIcon
 } from '@mui/icons-material';
 

@@ -1,4 +1,5 @@
 import { UploadFile } from '../components/Documents/DocumentUpload';
+import { config } from '../utils/config';
 
 export interface UploadProgress {
   fileId: string;
@@ -264,7 +265,7 @@ export class DocumentUploadService {
       });
 
       // Use the actual API endpoint when backend is ready
-      xhr.open('POST', '/api/v1/documents/upload');
+      xhr.open('POST', `${config.apiBaseUrl}/documents/upload`);
       xhr.setRequestHeader('Accept', 'application/json');
       
       xhr.send(formData);

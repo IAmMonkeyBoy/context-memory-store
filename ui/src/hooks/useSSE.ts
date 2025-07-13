@@ -3,6 +3,7 @@ import { sseService } from '@services';
 import { AnalysisChunk } from '@types';
 import { useDetailedHealth, useSystemMetrics } from './useApi';
 import { parsePrometheusMetrics, convertToMetricsData, generateMockPrometheusMetrics } from '@utils';
+import { config } from '../utils/config';
 
 export type SSEConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error' | 'max_attempts_reached';
 
@@ -140,7 +141,7 @@ export const useStreamingAnalysis = (query: string, options: { limit: number; in
         includeRelationships: options.includeRelationships.toString()
       });
       
-      const url = `/v1/memory/analyze-stream?${params.toString()}`;
+      const url = `${config.apiBaseUrl}/memory/analyze-stream?${params.toString()}`;
 
       const handleMessage = (eventData: any) => {
         const chunk: AnalysisChunk = {
@@ -200,7 +201,7 @@ export const useRealtimeHealth = (interval: number = 30000, useSSE: boolean = tr
   
   // SSE connection for real-time updates
   const { data: sseData, connectionInfo, reconnect } = useServerSentEvents(
-    '/v1/health/stream', 
+    `${config.apiBaseUrl}/health/stream`, 
     useSSE && !pollingEnabled
   );
 
@@ -369,7 +370,7 @@ export const useDashboardStream = (enabled: boolean = true) => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const { data, connectionInfo } = useServerSentEvents('/v1/dashboard/stream', enabled);
+  const { data, connectionInfo } = useServerSentEvents(`${config.apiBaseUrl}/dashboard/stream`, enabled);
 
   useEffect(() => {
     if (data.length > 0) {
