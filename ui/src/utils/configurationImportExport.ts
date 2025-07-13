@@ -157,7 +157,7 @@ class ConfigurationFormatHandler {
   }
 
   private static deepClone(obj: any): any {
-    return JSON.parse(JSON.stringify(obj));
+    return structuredClone(obj);
   }
 
   private static applyScopeFilter(config: any, scope: string, customFields?: string[]): any {
@@ -938,7 +938,7 @@ export class ConfigurationImporter {
     conflicts: ConfigurationConflict[],
     options: ConfigurationImportOptions
   ): Promise<SystemConfiguration> {
-    const result = JSON.parse(JSON.stringify(current)); // Deep clone
+    const result = structuredClone(current); // Deep clone
     
     // Apply merge strategy
     switch (options.mergeStrategy) {
