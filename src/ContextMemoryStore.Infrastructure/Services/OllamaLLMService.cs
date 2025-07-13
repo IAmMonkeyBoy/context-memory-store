@@ -228,11 +228,11 @@ public class OllamaLLMService : ILLMService
             Stream = true
         };
 
-        HttpResponseMessage httpResponse;
+        Stream stream;
         
         try
         {
-            httpResponse = await _openAIApi.CreateChatCompletionStreamAsync(request, cancellationToken);
+            stream = await _openAIApi.CreateChatCompletionStreamAsync(request, cancellationToken);
         }
         catch (Exception ex) when (!(ex is LLMServiceException))
         {
@@ -240,14 +240,6 @@ public class OllamaLLMService : ILLMService
             throw new LLMServiceException($"Error in streaming chat completion: {ex.Message}", ex);
         }
 
-        if (!httpResponse.IsSuccessStatusCode)
-        {
-            var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
-            httpResponse.Dispose();
-            throw new LLMServiceException($"HTTP error {httpResponse.StatusCode}: {errorContent}");
-        }
-
-        var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken);
         var reader = new StreamReader(stream);
         
         while (!reader.EndOfStream)
@@ -261,7 +253,7 @@ public class OllamaLLMService : ILLMService
             {
                 _logger.LogError(ex, "An error occurred while reading a line from the response stream.");
                 reader?.Dispose();
-                httpResponse?.Dispose();
+                stream?.Dispose();
                 throw;
             }
             
@@ -277,7 +269,7 @@ public class OllamaLLMService : ILLMService
             }
             catch (JsonException ex)
             {
-                logger.LogWarning(ex, "Malformed JSON encountered: {JsonData}", jsonData);
+                _logger.LogWarning(ex, "Malformed JSON encountered: {JsonData}", jsonData);
                 // Skip malformed JSON chunks
                 continue;
             }
@@ -290,7 +282,7 @@ public class OllamaLLMService : ILLMService
         }
         
         reader?.Dispose();
-        httpResponse?.Dispose();
+        stream?.Dispose();
 
         _logger.LogInformation("Successfully completed streaming chat completion");
     }

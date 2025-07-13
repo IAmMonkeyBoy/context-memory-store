@@ -12,7 +12,8 @@ public interface IOpenAIApi
     Task<ChatCompletionResponse> CreateChatCompletionAsync([Body] ChatCompletionRequest request, CancellationToken cancellationToken = default);
 
     [Post("/v1/chat/completions")]
-    Task<HttpResponseMessage> CreateChatCompletionStreamAsync([Body] ChatCompletionRequest request, CancellationToken cancellationToken = default);
+    [Headers("Accept: text/event-stream")]
+    Task<Stream> CreateChatCompletionStreamAsync([Body] ChatCompletionRequest request, CancellationToken cancellationToken = default);
 
     [Post("/v1/embeddings")]
     Task<EmbeddingResponse> CreateEmbeddingAsync([Body] EmbeddingRequest request, CancellationToken cancellationToken = default);
