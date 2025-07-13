@@ -35,11 +35,20 @@ export class ConfigurationEncryption {
     settings: EncryptionSettings
   ): Promise<{ encryptedConfig: SystemConfiguration; encryptionMetadata: EncryptionMetadata }> {
     try {
-      const encryptedConfig = JSON.parse(JSON.stringify(config)); // Deep clone
+      const encryptedConfig = structuredClone(config); // Deep clone
+      const iterations = settings.iterationCount || this.DEFAULT_ITERATIONS;
+      const saltLength = settings.saltLength || this.DEFAULT_SALT_LENGTH;
+      
+      // Generate salt for key derivation
+      const salt = crypto.getRandomValues(new Uint8Array(saltLength));
+      const saltBase64 = btoa(String.fromCharCode(...salt));
+      
       const encryptionMetadata: EncryptionMetadata = {
         algorithm: settings.algorithm,
         keyDerivation: settings.keyDerivation,
         encryptedFields: [],
+        salt: saltBase64,
+        iterations,
         timestamp: new Date().toISOString(),
         version: '1.0.0'
       };
@@ -48,18 +57,20 @@ export class ConfigurationEncryption {
         return { encryptedConfig, encryptionMetadata };
       }
 
-      // Generate master key from password
+      // Generate master key from password using stored salt
       const masterKey = await this.deriveMasterKey(
         masterPassword,
         settings.keyDerivation,
-        settings.iterationCount || this.DEFAULT_ITERATIONS,
-        settings.saltLength || this.DEFAULT_SALT_LENGTH
+        iterations,
+        salt
       );
 
       // Encrypt specified fields
-      const fieldsToEncrypt = settings.encryptionFields.length > 0 
-        ? settings.encryptionFields 
-        : this.getDefaultSensitiveFields();
+      const fieldsToEncrypt = settings.encryptSensitiveFields
+        ? (settings.encryptionFields.length > 0 
+          ? settings.encryptionFields 
+          : this.getDefaultSensitiveFields())
+        : settings.encryptionFields;
 
       for (const fieldPath of fieldsToEncrypt) {
         const value = this.getNestedValue(encryptedConfig, fieldPath);
@@ -85,18 +96,23 @@ export class ConfigurationEncryption {
     encryptionMetadata: EncryptionMetadata
   ): Promise<SystemConfiguration> {
     try {
-      const decryptedConfig = JSON.parse(JSON.stringify(encryptedConfig)); // Deep clone
+      const decryptedConfig = structuredClone(encryptedConfig); // Deep clone
 
       if (encryptionMetadata.encryptedFields.length === 0) {
         return decryptedConfig;
       }
 
-      // Generate master key from password
+      // Decode salt from metadata
+      const salt = new Uint8Array(
+        atob(encryptionMetadata.salt).split('').map(char => char.charCodeAt(0))
+      );
+
+      // Generate master key from password using stored salt
       const masterKey = await this.deriveMasterKey(
         masterPassword,
         encryptionMetadata.keyDerivation,
-        this.DEFAULT_ITERATIONS,
-        this.DEFAULT_SALT_LENGTH
+        encryptionMetadata.iterations,
+        salt
       );
 
       // Decrypt fields
@@ -121,13 +137,10 @@ export class ConfigurationEncryption {
     password: string,
     kdf: KeyDerivationFunction,
     iterations: number,
-    saltLength: number
+    salt: Uint8Array
   ): Promise<CryptoKey> {
     const encoder = new TextEncoder();
     const passwordBuffer = encoder.encode(password);
-    
-    // Generate salt (in real implementation, store and reuse salt)
-    const salt = crypto.getRandomValues(new Uint8Array(saltLength));
 
     switch (kdf) {
       case 'pbkdf2':
@@ -338,6 +351,8 @@ interface EncryptionMetadata {
   algorithm: EncryptionAlgorithm;
   keyDerivation: KeyDerivationFunction;
   encryptedFields: string[];
+  salt: string; // Base64 encoded salt
+  iterations: number;
   timestamp: string;
   version: string;
 }
@@ -535,7 +550,10 @@ export class ConfigurationAccessControl {
   }
 
   private static generateSessionToken(): string {
-    return btoa(crypto.getRandomValues(new Uint8Array(32)).toString());
+    // Generate 32 random bytes for the session token
+    const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+    // Convert to base64 directly from raw bytes for better entropy
+    return btoa(String.fromCharCode(...randomBytes));
   }
 
   private static failedAttempts: Map<string, FailedAttemptRecord> = new Map();
