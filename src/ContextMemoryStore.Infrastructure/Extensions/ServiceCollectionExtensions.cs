@@ -9,6 +9,7 @@ using Prometheus;
 using Neo4j.Driver;
 using Qdrant.Client;
 using Refit;
+using System.Reflection;
 
 namespace ContextMemoryStore.Infrastructure.Extensions;
 
@@ -31,7 +32,7 @@ public static class ServiceCollectionExtensions
         // Register external service clients
         AddQdrantClient(services, configuration);
         AddNeo4jDriver(services, configuration);
-        AddRefitClient(services, configuration);
+        AddOllamaApiClient(services, configuration);
         AddPrometheusMetrics(services, configuration);
 
         // Register application services - Phase 5 real implementations
@@ -82,7 +83,7 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    private static void AddRefitClient(IServiceCollection services, IConfiguration configuration)
+    private static void AddOllamaApiClient(IServiceCollection services, IConfiguration configuration)
     {
         // Configure HTTP client with enhanced settings for Ollama
         services.AddRefitClient<IOpenAIApi>((provider) =>
@@ -99,8 +100,9 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri(options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
             
-            // Add default headers if needed
-            client.DefaultRequestHeaders.Add("User-Agent", "ContextMemoryStore/1.0");
+            // Add default headers with dynamic version
+            var assemblyVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown";
+            client.DefaultRequestHeaders.Add("User-Agent", $"ContextMemoryStore/{assemblyVersion}");
             
             // Add authorization header if API key is provided
             if (!string.IsNullOrEmpty(options.ApiKey))

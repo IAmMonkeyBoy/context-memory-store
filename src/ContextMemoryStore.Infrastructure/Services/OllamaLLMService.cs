@@ -255,7 +255,7 @@ public class OllamaLLMService : ILLMService
             string? line;
             try
             {
-                line = await reader.ReadLineAsync(cancellationToken);
+                line = await reader.ReadLineAsync();
             }
             catch
             {
