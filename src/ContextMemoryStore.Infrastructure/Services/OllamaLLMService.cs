@@ -1,12 +1,10 @@
 using ContextMemoryStore.Core.Interfaces;
 using ContextMemoryStore.Core.Exceptions;
 using ContextMemoryStore.Infrastructure.Configuration;
+using ContextMemoryStore.Infrastructure.Clients;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
-using OpenAI;
-using OpenAI.Chat;
-using OpenAI.Embeddings;
 using Polly;
 using Polly.CircuitBreaker;
 using System.Text.Json;
@@ -17,12 +15,12 @@ using CoreChatMessage = ContextMemoryStore.Core.Interfaces.ChatMessage;
 namespace ContextMemoryStore.Infrastructure.Services;
 
 /// <summary>
-/// Enhanced Ollama implementation of ILLMService using OpenAI .NET SDK v2.2.0
+/// Enhanced Ollama implementation of ILLMService using Refit HTTP client
 /// Features: Streaming, retry policies, circuit breaker, connection pooling, and enhanced error handling
 /// </summary>
 public class OllamaLLMService : ILLMService
 {
-    private readonly OpenAIClient _openAIClient;
+    private readonly IOpenAIApi _openAIApi;
     private readonly OllamaOptions _options;
     private readonly ILogger<OllamaLLMService> _logger;
     private readonly IMemoryCache _cache;
@@ -35,12 +33,12 @@ public class OllamaLLMService : ILLMService
     private static readonly TimeSpan AvailableModelsCacheDuration = TimeSpan.FromMinutes(10);
 
     public OllamaLLMService(
-        OpenAIClient openAIClient,
+        IOpenAIApi openAIApi,
         IOptions<OllamaOptions> options,
         ILogger<OllamaLLMService> logger,
         IMemoryCache cache)
     {
-        _openAIClient = openAIClient ?? throw new ArgumentNullException(nameof(openAIClient));
+        _openAIApi = openAIApi ?? throw new ArgumentNullException(nameof(openAIApi));
         _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
@@ -66,9 +64,13 @@ public class OllamaLLMService : ILLMService
 
             var result = await _resiliencePipeline.ExecuteAsync(async (ct) =>
             {
-                var embeddingClient = _openAIClient.GetEmbeddingClient(_options.EmbeddingModel);
-                var response = await embeddingClient.GenerateEmbeddingAsync(text, options: null, ct);
-                return response.Value.ToFloats().ToArray();
+                var request = new EmbeddingRequest
+                {
+                    Model = _options.EmbeddingModel,
+                    Input = text
+                };
+                var response = await _openAIApi.CreateEmbeddingAsync(request, ct);
+                return response.Data.First().Embedding;
             }, cancellationToken);
 
             _logger.LogInformation("Successfully generated embedding with {Dimensions} dimensions", result.Length);
@@ -109,9 +111,13 @@ public class OllamaLLMService : ILLMService
 
                 var batchEmbeddings = await _resiliencePipeline.ExecuteAsync(async (ct) =>
                 {
-                    var embeddingClient = _openAIClient.GetEmbeddingClient(_options.EmbeddingModel);
-                    var response = await embeddingClient.GenerateEmbeddingsAsync(batch, options: null, ct);
-                    return response.Value.Select(e => e.ToFloats().ToArray()).ToList();
+                    var request = new EmbeddingRequest
+                    {
+                        Model = _options.EmbeddingModel,
+                        Input = batch.ToArray()
+                    };
+                    var response = await _openAIApi.CreateEmbeddingAsync(request, ct);
+                    return response.Data.Select(e => e.Embedding).ToList();
                 }, cancellationToken);
 
                 allEmbeddings.AddRange(batchEmbeddings);
@@ -145,25 +151,22 @@ public class OllamaLLMService : ILLMService
 
             var result = await _resiliencePipeline.ExecuteAsync(async (ct) =>
             {
-                var chatClient = _openAIClient.GetChatClient(_options.ChatModel);
-
-                var chatMessages = messageList.Select<CoreChatMessage, OpenAI.Chat.ChatMessage>(m =>
-                    m.Role.ToLowerInvariant() switch
-                    {
-                        "system" => OpenAI.Chat.ChatMessage.CreateSystemMessage(m.Content),
-                        "user" => OpenAI.Chat.ChatMessage.CreateUserMessage(m.Content),
-                        "assistant" => OpenAI.Chat.ChatMessage.CreateAssistantMessage(m.Content),
-                        _ => OpenAI.Chat.ChatMessage.CreateUserMessage(m.Content)
-                    }).ToList();
-
-                var options = new ChatCompletionOptions
+                var chatMessages = messageList.Select(m => new Clients.ChatMessage
                 {
-                    MaxOutputTokenCount = _options.MaxTokens,
+                    Role = m.Role.ToLowerInvariant(),
+                    Content = m.Content
+                }).ToList();
+
+                var request = new ChatCompletionRequest
+                {
+                    Model = _options.ChatModel,
+                    Messages = chatMessages,
+                    MaxTokens = _options.MaxTokens,
                     Temperature = (float)_options.Temperature
                 };
 
-                var response = await chatClient.CompleteChatAsync(chatMessages, options, ct);
-                return response.Value.Content[0].Text ?? string.Empty;
+                var response = await _openAIApi.CreateChatCompletionAsync(request, ct);
+                return response.Choices.FirstOrDefault()?.Message.Content ?? string.Empty;
             }, cancellationToken);
 
             _logger.LogInformation("Successfully generated chat completion (length: {Length})", result.Length);
@@ -210,28 +213,26 @@ public class OllamaLLMService : ILLMService
         List<CoreChatMessage> messageList,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var chatClient = _openAIClient.GetChatClient(_options.ChatModel);
-
-        var chatMessages = messageList.Select<CoreChatMessage, OpenAI.Chat.ChatMessage>(m =>
-            m.Role.ToLowerInvariant() switch
-            {
-                "system" => OpenAI.Chat.ChatMessage.CreateSystemMessage(m.Content),
-                "user" => OpenAI.Chat.ChatMessage.CreateUserMessage(m.Content),
-                "assistant" => OpenAI.Chat.ChatMessage.CreateAssistantMessage(m.Content),
-                _ => OpenAI.Chat.ChatMessage.CreateUserMessage(m.Content)
-            }).ToList();
-
-        var options = new ChatCompletionOptions
+        var chatMessages = messageList.Select(m => new Clients.ChatMessage
         {
-            MaxOutputTokenCount = _options.MaxTokens,
-            Temperature = (float)_options.Temperature
+            Role = m.Role.ToLowerInvariant(),
+            Content = m.Content
+        }).ToList();
+
+        var request = new ChatCompletionRequest
+        {
+            Model = _options.ChatModel,
+            Messages = chatMessages,
+            MaxTokens = _options.MaxTokens,
+            Temperature = (float)_options.Temperature,
+            Stream = true
         };
 
-        IAsyncEnumerable<StreamingChatCompletionUpdate> streamingResponse;
+        HttpResponseMessage httpResponse;
         
         try
         {
-            streamingResponse = chatClient.CompleteChatStreamingAsync(chatMessages, options, cancellationToken);
+            httpResponse = await _openAIApi.CreateChatCompletionStreamAsync(request, cancellationToken);
         }
         catch (Exception ex) when (!(ex is LLMServiceException))
         {
@@ -239,17 +240,57 @@ public class OllamaLLMService : ILLMService
             throw new LLMServiceException($"Error in streaming chat completion: {ex.Message}", ex);
         }
 
-        await foreach (var update in streamingResponse)
+        if (!httpResponse.IsSuccessStatusCode)
         {
-            if (update.ContentUpdate.Count > 0)
+            var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+            httpResponse.Dispose();
+            throw new LLMServiceException($"HTTP error {httpResponse.StatusCode}: {errorContent}");
+        }
+
+        var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken);
+        var reader = new StreamReader(stream);
+        
+        while (!reader.EndOfStream)
+        {
+            string? line;
+            try
             {
-                var content = update.ContentUpdate[0].Text;
-                if (!string.IsNullOrEmpty(content))
-                {
-                    yield return content;
-                }
+                line = await reader.ReadLineAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while reading a line from the response stream.");
+                reader?.Dispose();
+                httpResponse?.Dispose();
+                throw;
+            }
+            
+            if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: ")) continue;
+            
+            var jsonData = line.Substring(6); // Remove "data: " prefix
+            if (jsonData == "[DONE]") break;
+            
+            ChatCompletionStreamResponse? response;
+            try
+            {
+                response = JsonSerializer.Deserialize<ChatCompletionStreamResponse>(jsonData);
+            }
+            catch (JsonException ex)
+            {
+                logger.LogWarning(ex, "Malformed JSON encountered: {JsonData}", jsonData);
+                // Skip malformed JSON chunks
+                continue;
+            }
+            
+            var choice = response?.Choices?.FirstOrDefault();
+            if (choice?.Delta.Content != null)
+            {
+                yield return choice.Delta.Content;
             }
         }
+        
+        reader?.Dispose();
+        httpResponse?.Dispose();
 
         _logger.LogInformation("Successfully completed streaming chat completion");
     }
@@ -443,21 +484,28 @@ Return only valid JSON without any additional text or explanations.";
             // Test the model with a simple request
             if (modelName == _options.ChatModel)
             {
-                var chatClient = _openAIClient.GetChatClient(modelName);
-                var testMessage = OpenAI.Chat.ChatMessage.CreateUserMessage("Hello");
-                var options = new ChatCompletionOptions { MaxOutputTokenCount = 10 };
+                var request = new ChatCompletionRequest
+                {
+                    Model = modelName,
+                    Messages = new List<Clients.ChatMessage> { new() { Role = "user", Content = "Hello" } },
+                    MaxTokens = 10
+                };
 
-                var response = await chatClient.CompleteChatAsync([testMessage], options, cancellationToken);
-                var isHealthy = !string.IsNullOrEmpty(response.Value.Content[0].Text);
+                var response = await _openAIApi.CreateChatCompletionAsync(request, cancellationToken);
+                var isHealthy = !string.IsNullOrEmpty(response.Choices.FirstOrDefault()?.Message.Content);
 
                 _cache.Set(cacheKey, isHealthy, ModelHealthCacheDuration);
                 return isHealthy;
             }
             else if (modelName == _options.EmbeddingModel)
             {
-                var embeddingClient = _openAIClient.GetEmbeddingClient(modelName);
-                var response = await embeddingClient.GenerateEmbeddingAsync("test", cancellationToken: cancellationToken);
-                var isHealthy = response.Value.ToFloats().Length > 0;
+                var request = new EmbeddingRequest
+                {
+                    Model = modelName,
+                    Input = "test"
+                };
+                var response = await _openAIApi.CreateEmbeddingAsync(request, cancellationToken);
+                var isHealthy = response.Data.FirstOrDefault()?.Embedding.Length > 0;
 
                 _cache.Set(cacheKey, isHealthy, ModelHealthCacheDuration);
                 return isHealthy;
