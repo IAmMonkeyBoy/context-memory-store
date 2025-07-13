@@ -257,8 +257,9 @@ public class OllamaLLMService : ILLMService
             {
                 line = await reader.ReadLineAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while reading a line from the response stream.");
                 reader?.Dispose();
                 httpResponse?.Dispose();
                 throw;
