@@ -16,8 +16,9 @@
     <!-- Neo4j Graph Database Driver -->
     <PackageReference Include="Neo4j.Driver" Version="5.28.2" />
     
-    <!-- OpenAI .NET SDK for Ollama integration -->
-    <PackageReference Include="OpenAI" Version="2.2.0" />
+    <!-- Refit for HTTP API integration -->
+    <PackageReference Include="Refit" Version="8.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
     
     <!-- Prometheus Metrics -->
     <PackageReference Include="prometheus-net" Version="8.2.1" />

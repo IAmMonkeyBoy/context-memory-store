@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 using ContextMemoryStore.Core.Interfaces;
 using ContextMemoryStore.Infrastructure.Services;
 using ContextMemoryStore.Infrastructure.Configuration;
+using ContextMemoryStore.Infrastructure.Clients;
 using Prometheus;
 using Neo4j.Driver;
 using Qdrant.Client;
-using OpenAI;
-using System.ClientModel;
+using Refit;
 
 namespace ContextMemoryStore.Infrastructure.Extensions;
 
@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
         // Register external service clients
         AddQdrantClient(services, configuration);
         AddNeo4jDriver(services, configuration);
-        AddOpenAIClient(services, configuration);
+        AddRefitClient(services, configuration);
         AddPrometheusMetrics(services, configuration);
 
         // Register application services - Phase 5 real implementations
@@ -82,10 +82,18 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    private static void AddOpenAIClient(IServiceCollection services, IConfiguration configuration)
+    private static void AddRefitClient(IServiceCollection services, IConfiguration configuration)
     {
         // Configure HTTP client with enhanced settings for Ollama
-        services.AddHttpClient("OllamaClient", (provider, client) =>
+        services.AddRefitClient<IOpenAIApi>((provider) =>
+        {
+            var options = provider.GetRequiredService<IOptions<OllamaOptions>>().Value;
+            return new RefitSettings
+            {
+                ContentSerializer = new SystemTextJsonContentSerializer()
+            };
+        })
+        .ConfigureHttpClient((provider, client) =>
         {
             var options = provider.GetRequiredService<IOptions<OllamaOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
@@ -93,6 +101,12 @@ public static class ServiceCollectionExtensions
             
             // Add default headers if needed
             client.DefaultRequestHeaders.Add("User-Agent", "ContextMemoryStore/1.0");
+            
+            // Add authorization header if API key is provided
+            if (!string.IsNullOrEmpty(options.ApiKey))
+            {
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.ApiKey}");
+            }
         })
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
@@ -103,24 +117,6 @@ public static class ServiceCollectionExtensions
         })
         // Add Polly retry policies if needed in the future
         .SetHandlerLifetime(TimeSpan.FromMinutes(5)); // Default from OllamaOptions.ConnectionLifetimeMinutes
-
-        services.AddSingleton<OpenAIClient>(provider =>
-        {
-            var options = provider.GetRequiredService<IOptions<OllamaOptions>>().Value;
-            var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
-            var httpClient = httpClientFactory.CreateClient("OllamaClient");
-            
-            var clientOptions = new OpenAIClientOptions()
-            {
-                Endpoint = new Uri(options.BaseUrl)
-                // Note: Custom HttpClient transport configuration may need to be handled differently
-                // in OpenAI SDK v2.2.0 - keeping simpler approach for now
-            };
-            
-            // For Ollama, we use a dummy API key since it doesn't require real authentication
-            var apiKey = string.IsNullOrEmpty(options.ApiKey) ? "ollama-dummy-key-not-required" : options.ApiKey;
-            return new OpenAIClient(new System.ClientModel.ApiKeyCredential(apiKey), clientOptions);
-        });
     }
 
     private static void AddPrometheusMetrics(IServiceCollection services, IConfiguration configuration)
