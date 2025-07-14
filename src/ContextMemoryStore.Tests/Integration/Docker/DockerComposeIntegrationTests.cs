@@ -15,6 +15,7 @@ namespace ContextMemoryStore.Tests.Integration.Docker;
 [Trait(TestTraits.Category, TestCategories.Docker)]
 [Trait(TestTraits.Category, TestCategories.RequiresExternalServices)]
 [Trait(TestTraits.Duration, "Long")]
+[Collection("DockerIntegrationTests")]
 public class DockerComposeIntegrationTests : ServiceIntegrationTestBase
 {
     private readonly HttpClient _httpClient;

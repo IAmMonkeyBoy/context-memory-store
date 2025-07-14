@@ -12,6 +12,7 @@ namespace ContextMemoryStore.Tests.Integration.Infrastructure;
 /// </summary>
 [Trait(TestTraits.Category, TestCategories.Integration)]
 [Trait(TestTraits.Service, "Infrastructure")]
+[Collection("SerializedIntegrationTests")]
 public class TestInfrastructureValidationTests : ServiceIntegrationTestBase
 {
     private readonly TestDataManager _testDataManager;

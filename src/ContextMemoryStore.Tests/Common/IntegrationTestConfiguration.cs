@@ -13,6 +13,10 @@ public class IntegrationTestConfiguration
     public bool UseTestContainers { get; set; } = true;
     public bool ParallelTestExecution { get; set; } = false;
     public bool TestDataIsolation { get; set; } = true;
+    public bool UseDynamicPortAllocation { get; set; } = true;
+    public bool ReuseContainers { get; set; } = false;
+    public int MaxRetryAttempts { get; set; } = 3;
+    public TimeSpan RetryDelay { get; set; } = TimeSpan.FromSeconds(2);
 
     public static IntegrationTestConfiguration FromConfiguration(IConfiguration configuration)
     {

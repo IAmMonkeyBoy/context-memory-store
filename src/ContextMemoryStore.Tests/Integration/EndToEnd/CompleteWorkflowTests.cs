@@ -18,6 +18,7 @@ namespace ContextMemoryStore.Tests.Integration.EndToEnd;
 [Trait(TestTraits.Category, TestCategories.EndToEnd)]
 [Trait(TestTraits.Service, "CompleteWorkflow")]
 [Trait(TestTraits.Duration, "Long")]
+[Collection("SerializedIntegrationTests")]
 public class CompleteWorkflowTests : ServiceIntegrationTestBase
 {
     private readonly TestDataManager _testDataManager;
