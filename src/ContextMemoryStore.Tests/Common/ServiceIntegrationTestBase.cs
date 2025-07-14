@@ -7,6 +7,7 @@ using Testcontainers.Qdrant;
 using Testcontainers.Neo4j;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Configurations;
 using System.Net.Http;
 using Xunit;
 
@@ -46,27 +47,12 @@ public abstract class ServiceIntegrationTestBase : IAsyncLifetime
         // Start containers if required by test
         if (RequiresQdrant())
         {
-            _qdrantContainer = new QdrantBuilder()
-                .WithImage("qdrant/qdrant:v1.11.5")
-                .WithPortBinding(6333, 6333)
-                .Build();
-            
-            await _qdrantContainer.StartAsync();
+            _qdrantContainer = await StartQdrantContainerWithRetryAsync();
         }
 
         if (RequiresNeo4j())
         {
-            // Note: For now, we'll use default Neo4j settings to avoid API issues
-            // In real implementation, we'd configure with proper credentials
-            _neo4jContainer = new Neo4jBuilder()
-                .WithImage("neo4j:5.24-community")
-                .WithEnvironment("NEO4J_AUTH", "neo4j/contextmemory")
-                .WithEnvironment("NEO4J_PLUGINS", "[\"apoc\"]")
-                .WithPortBinding(7474, 7474)
-                .WithPortBinding(7687, 7687)
-                .Build();
-            
-            await _neo4jContainer.StartAsync();
+            _neo4jContainer = await StartNeo4jContainerWithRetryAsync();
         }
 
         // Create HTTP client and services
@@ -81,14 +67,30 @@ public abstract class ServiceIntegrationTestBase : IAsyncLifetime
         
         if (_qdrantContainer != null)
         {
-            await _qdrantContainer.StopAsync();
-            await _qdrantContainer.DisposeAsync();
+            try
+            {
+                await _qdrantContainer.StopAsync();
+                await _qdrantContainer.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the test cleanup
+                Logger?.LogWarning(ex, "Failed to properly dispose Qdrant container");
+            }
         }
         
         if (_neo4jContainer != null)
         {
-            await _neo4jContainer.StopAsync();
-            await _neo4jContainer.DisposeAsync();
+            try
+            {
+                await _neo4jContainer.StopAsync();
+                await _neo4jContainer.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the test cleanup
+                Logger?.LogWarning(ex, "Failed to properly dispose Neo4j container");
+            }
         }
         
         await _factory.DisposeAsync();
@@ -174,5 +176,84 @@ public abstract class ServiceIntegrationTestBase : IAsyncLifetime
         }
 
         throw new TimeoutException($"Service at {healthEndpoint} did not become ready within {timeout}");
+    }
+
+    /// <summary>
+    /// Starts a Qdrant container with retry logic to handle port conflicts.
+    /// </summary>
+    private async Task<QdrantContainer> StartQdrantContainerWithRetryAsync()
+    {
+        const int maxRetries = 3;
+        const int retryDelaySeconds = 2;
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var container = new QdrantBuilder()
+                    .WithImage("qdrant/qdrant:v1.11.5")
+                    .WithPortBinding(0, 6333)  // Dynamic port allocation - Docker assigns random host port
+                    .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6333))
+                    .Build();
+                
+                await container.StartAsync();
+                return container;
+            }
+            catch (Exception ex) when (attempt < maxRetries && IsPortConflictException(ex))
+            {
+                // Log the retry attempt
+                Console.WriteLine($"Qdrant container start attempt {attempt} failed with port conflict. Retrying in {retryDelaySeconds}s...");
+                await Task.Delay(TimeSpan.FromSeconds(retryDelaySeconds));
+            }
+        }
+        
+        throw new InvalidOperationException($"Failed to start Qdrant container after {maxRetries} attempts");
+    }
+
+    /// <summary>
+    /// Starts a Neo4j container with retry logic to handle port conflicts.
+    /// </summary>
+    private async Task<Neo4jContainer> StartNeo4jContainerWithRetryAsync()
+    {
+        const int maxRetries = 3;
+        const int retryDelaySeconds = 2;
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var container = new Neo4jBuilder()
+                    .WithImage("neo4j:5.24-community")
+                    .WithEnvironment("NEO4J_AUTH", "neo4j/contextmemory")
+                    .WithEnvironment("NEO4J_PLUGINS", "[\"apoc\"]")
+                    .WithPortBinding(0, 7474)  // Dynamic port allocation - Docker assigns random host port
+                    .WithPortBinding(0, 7687)  // Dynamic port allocation - Docker assigns random host port
+                    .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(7474))
+                    .Build();
+                
+                await container.StartAsync();
+                return container;
+            }
+            catch (Exception ex) when (attempt < maxRetries && IsPortConflictException(ex))
+            {
+                // Log the retry attempt
+                Console.WriteLine($"Neo4j container start attempt {attempt} failed with port conflict. Retrying in {retryDelaySeconds}s...");
+                await Task.Delay(TimeSpan.FromSeconds(retryDelaySeconds));
+            }
+        }
+        
+        throw new InvalidOperationException($"Failed to start Neo4j container after {maxRetries} attempts");
+    }
+
+    /// <summary>
+    /// Checks if an exception is related to port conflicts.
+    /// </summary>
+    private static bool IsPortConflictException(Exception ex)
+    {
+        var message = ex.Message.ToLowerInvariant();
+        return message.Contains("port is already allocated") ||
+               message.Contains("bind failed") ||
+               message.Contains("address already in use") ||
+               message.Contains("port already in use");
     }
 }
