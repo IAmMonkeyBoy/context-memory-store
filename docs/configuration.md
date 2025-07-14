@@ -46,7 +46,7 @@ vector_store:
   host: "localhost"
   port: 6333
   collection_name: "context-memory"
-  vector_size: 768  # mxbai-embed-large embedding dimension
+  vector_size: 1024  # mxbai-embed-large embedding dimension
   distance: "Cosine"
   backup_path: "/project/vector-store.jsonl"
 

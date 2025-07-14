@@ -11,24 +11,25 @@ public class PerformanceMonitoringMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<PerformanceMonitoringMiddleware> _logger;
     private readonly IMetricsCollectionService _metricsCollectionService;
-    private readonly ICorrelationIdService _correlationIdService;
 
     public PerformanceMonitoringMiddleware(
         RequestDelegate next, 
         ILogger<PerformanceMonitoringMiddleware> logger,
-        IMetricsCollectionService metricsCollectionService,
-        ICorrelationIdService correlationIdService)
+        IMetricsCollectionService metricsCollectionService)
     {
         _next = next;
         _logger = logger;
         _metricsCollectionService = metricsCollectionService;
-        _correlationIdService = correlationIdService;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
-        var correlationId = _correlationIdService.GetCorrelationId();
+        
+        // Resolve scoped service from request scope
+        var correlationIdService = context.RequestServices.GetRequiredService<ICorrelationIdService>();
+        var correlationId = correlationIdService.GetCorrelationId();
+        
         var endpoint = GetEndpointName(context);
         var method = context.Request.Method;
         

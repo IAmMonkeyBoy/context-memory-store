@@ -118,11 +118,8 @@ public class IngestOptionsValidator : AbstractValidator<IngestOptions>
 {
     public IngestOptionsValidator()
     {
-        RuleFor(x => x.ChunkSize)
-            .GreaterThan(100)
-            .WithMessage("Chunk size must be greater than 100")
-            .LessThanOrEqualTo(10000)
-            .WithMessage("Chunk size cannot exceed 10,000 characters");
+        // No validation needed for ChunkSize since it's now system-controlled
+        // Only validate the user-controllable options
     }
 }
 

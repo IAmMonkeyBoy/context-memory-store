@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
+using Grpc.Core;
 
 namespace ContextMemoryStore.Infrastructure.Services;
 
@@ -297,6 +298,9 @@ public class QdrantVectorStoreService : IVectorStoreService
             var collections = await _client.ListCollectionsAsync(cancellationToken: cancellationToken);
             var collectionExists = collections.Any(c => c == _options.CollectionName);
 
+            _logger.LogDebug("Checking collection existence. Found {CollectionCount} collections. Looking for: {TargetCollection}", 
+                collections.Count(), _options.CollectionName);
+
             if (!collectionExists)
             {
                 _logger.LogInformation("Creating collection {CollectionName}", _options.CollectionName);
@@ -313,9 +317,26 @@ public class QdrantVectorStoreService : IVectorStoreService
                     }
                 };
 
-                await _client.CreateCollectionAsync(_options.CollectionName, vectorParams, cancellationToken: cancellationToken);
-                _logger.LogInformation("Successfully created collection {CollectionName}", _options.CollectionName);
+                try
+                {
+                    await _client.CreateCollectionAsync(_options.CollectionName, vectorParams, cancellationToken: cancellationToken);
+                    _logger.LogInformation("Successfully created collection {CollectionName}", _options.CollectionName);
+                }
+                catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
+                {
+                    // Collection was created between our check and creation attempt - this is fine
+                    _logger.LogDebug("Collection {CollectionName} already exists (race condition)", _options.CollectionName);
+                }
             }
+            else
+            {
+                _logger.LogDebug("Collection {CollectionName} already exists", _options.CollectionName);
+            }
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
+        {
+            // Collection already exists - this is fine
+            _logger.LogDebug("Collection {CollectionName} already exists", _options.CollectionName);
         }
         catch (Exception ex)
         {

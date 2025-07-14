@@ -1,6 +1,31 @@
-@ContextMemoryStore.Api_HostAddress = http://localhost:5088
+@ContextMemoryStore_Api_HostAddress = http://localhost:8080
 
-GET {{ContextMemoryStore.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Health Check
+GET {{ContextMemoryStore_Api_HostAddress}}/v1/health
 
-###
+### Ingest Documents - Fixed README Example (matches your actual request)
+POST http://localhost:5088/v1/memory/ingest
+Content-Type: application/json
+
+{
+  "documents": [
+    {
+      "id": "README.md-1752458719317-yh5kbjcjn",
+      "content": "# Prototype Cheat-Sheet\r\n\r\n\r\n## Tools\r\n\r\n- **Claude** – chat / ideation  \r\n- **ChatGPT** – chat / ideation  \r\n- **Gemini** – chat / ideation (Google AI Studio)  \r\n- **Claude Code** – coding agent #1  \r\n- **GitHub Copilot Agent** (a.k.a. Copilot Chat) – coding agent #2  \r\n- **Codex** - OpenAI's coding Agent\r\n- **Gemini CLI** - \r\n\r\n> For chat you can usually get away with free tiers but you will either get rate limited or not even be able to try with the coding agents\r\n## Steps\r\n\r\n### Kick-off & PRD\r\n\r\nI usually start off with a message saying that that I'm working on an application idea and tell it I'd like help fleshing it out.  Focus on details and don't worry about grammar.  Two sentences of detailed description is worth more than double that of a single well formatted sentence.",
+      "metadata": {
+        "title": "README.md",
+        "type": "text",
+        "tags": ["documentation", "prototype", "cheat-sheet"]
+      },
+      "source": {
+        "type": "file",
+        "path": "README.md"
+      }
+    }
+  ],
+  "options": {
+    "autoSummarize": true,
+    "extractRelationships": true,
+    "chunkSize": 1000
+  }
+}

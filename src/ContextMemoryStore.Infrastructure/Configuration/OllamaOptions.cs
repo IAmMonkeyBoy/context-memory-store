@@ -10,7 +10,7 @@ public class OllamaOptions
     /// <summary>
     /// Ollama API base URL (default: http://host.docker.internal:11434/v1)
     /// </summary>
-    public string BaseUrl { get; set; } = "http://host.docker.internal:11434/v1";
+    public string BaseUrl { get; set; } = "http://host.docker.internal:11434";
 
     /// <summary>
     /// Chat model to use (default: llama3)

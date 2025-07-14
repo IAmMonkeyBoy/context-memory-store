@@ -523,7 +523,7 @@ public class MemoryService : IMemoryService
     {
         // Rough estimates:
         // - Documents: ~10KB each (including metadata)
-        // - Vectors: ~3KB each (768 dimensions * 4 bytes)
+        // - Vectors: ~3KB each (1024 dimensions * 4 bytes)
         // - Relationships: ~500 bytes each
         return (documentCount * 10_000) + (vectorCount * 3_000) + (relationshipCount * 500);
     }

@@ -1,13 +1,17 @@
+using System.Text.Json.Serialization;
+
 namespace ContextMemoryStore.Core.Entities;
 
 /// <summary>
 /// Metadata associated with a document
 /// </summary>
+[JsonConverter(typeof(DocumentMetadataJsonConverter))]
 public class DocumentMetadata : Dictionary<string, object>
 {
     /// <summary>
     /// Title of the document
     /// </summary>
+    [JsonPropertyName("title")]
     public string? Title
     {
         get => TryGetValue("title", out var value) ? value as string : null;
@@ -26,6 +30,7 @@ public class DocumentMetadata : Dictionary<string, object>
     /// <summary>
     /// Type or category of the document
     /// </summary>
+    [JsonPropertyName("type")]
     public string? Type
     {
         get => TryGetValue("type", out var value) ? value as string : null;

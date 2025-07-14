@@ -5,6 +5,7 @@ using ContextMemoryStore.Infrastructure.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Neo4j.Driver;
+using System.Text.Json;
 
 namespace ContextMemoryStore.Infrastructure.Services;
 
@@ -60,7 +61,7 @@ public class Neo4jGraphStoreService : IGraphStoreService
                     ["confidence"] = relationship.Confidence,
                     ["documentId"] = relationship.DocumentId,
                     ["createdAt"] = DateTime.UtcNow.ToString("O"),
-                    ["metadata"] = relationship.Metadata
+                    ["metadata"] = relationship.Metadata != null ? JsonSerializer.Serialize(relationship.Metadata) : "{}"
                 };
 
                 var result = await session.RunAsync(query, parameters);
@@ -124,7 +125,7 @@ public class Neo4jGraphStoreService : IGraphStoreService
                             ["confidence"] = relationship.Confidence,
                             ["documentId"] = relationship.DocumentId,
                             ["createdAt"] = DateTime.UtcNow.ToString("O"),
-                            ["metadata"] = relationship.Metadata
+                            ["metadata"] = relationship.Metadata != null ? JsonSerializer.Serialize(relationship.Metadata) : "{}"
                         };
 
                         await tx.RunAsync(query, parameters);

@@ -78,13 +78,13 @@ public class TestInfrastructureValidationTests : ServiceIntegrationTestBase
     public void TestDataManager_ShouldCreateTestVectors()
     {
         // Arrange & Act
-        var vectors = _testDataManager.CreateTestVectors(3, 768);
+        var vectors = _testDataManager.CreateTestVectors(3, 1024);
 
         // Assert
         vectors.Should().HaveCount(3);
         vectors.Should().AllSatisfy(vector =>
         {
-            vector.Should().HaveCount(768);
+            vector.Should().HaveCount(1024);
             vector.Should().AllSatisfy(value => value.Should().BeInRange(-1f, 1f));
         });
     }

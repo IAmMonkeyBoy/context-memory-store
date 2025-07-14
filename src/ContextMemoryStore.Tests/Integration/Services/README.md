@@ -122,7 +122,7 @@ Key configuration options:
     "Host": "localhost",
     "Port": 6333,
     "CollectionName": "documents",
-    "VectorSize": 768
+    "VectorSize": 1024
   },
   "Neo4j": {
     "Uri": "bolt://localhost:7687",

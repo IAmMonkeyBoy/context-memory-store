@@ -282,7 +282,7 @@ public class LifecycleService : ILifecycleService
                 project_id = projectId,
                 format_version = "1.0",
                 collection_name = "context-memory",
-                vector_dimension = 768,
+                vector_dimension = 1024,
                 vectors = new[] 
                 {
                     new { id = "sample_vector_1", payload = new { source = "placeholder" }, vector = new float[768] }

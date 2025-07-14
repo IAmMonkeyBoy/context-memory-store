@@ -58,7 +58,7 @@ public static class TestConstants
     public static readonly TimeSpan LongTimeout = TimeSpan.FromMinutes(2);
 
     // Test data
-    public const int DefaultVectorDimensions = 768;
+    public const int DefaultVectorDimensions = 1024;
     public const int DefaultTestDocumentCount = 5;
     public const int DefaultTestNodeCount = 5;
 

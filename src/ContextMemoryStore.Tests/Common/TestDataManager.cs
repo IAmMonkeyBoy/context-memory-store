@@ -72,7 +72,7 @@ public class TestDataManager
     /// <summary>
     /// Creates test vectors for vector store operations.
     /// </summary>
-    public List<float[]> CreateTestVectors(int count = 5, int dimensions = 768)
+    public List<float[]> CreateTestVectors(int count = 5, int dimensions = 1024)
     {
         var vectors = new List<float[]>();
         

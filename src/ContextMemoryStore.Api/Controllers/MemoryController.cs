@@ -3,6 +3,7 @@ using ContextMemoryStore.Core.Entities;
 using ContextMemoryStore.Core.Interfaces;
 using ContextMemoryStore.Api.Validation;
 using FluentValidation;
+using System.Text.Json.Serialization;
 using static ContextMemoryStore.Core.Interfaces.IMemoryService;
 
 namespace ContextMemoryStore.Api.Controllers;
@@ -45,15 +46,47 @@ public class MemoryController : ControllerBase
     {
         try
         {
+            // Debug logging to see actual request structure
+            _logger.LogInformation("Received ingest request with {DocumentCount} documents", request.Documents?.Count ?? 0);
+            if (request.Documents?.Any() == true)
+            {
+                var firstDoc = request.Documents.First();
+                _logger.LogInformation("First document - ID: {Id}, Content length: {ContentLength}, Metadata title: {Title}, Metadata type: {Type}, Source type: {SourceType}, Source path: {SourcePath}", 
+                    firstDoc.Id, 
+                    firstDoc.Content?.Length ?? 0,
+                    firstDoc.Metadata?.Title ?? "null",
+                    firstDoc.Metadata?.Type ?? "null",
+                    firstDoc.Source?.Type ?? "null",
+                    firstDoc.Source?.Path ?? "null");
+                _logger.LogInformation("Metadata dictionary contents: {@MetadataDict}", firstDoc.Metadata);
+                _logger.LogInformation("Using system-defined chunk size: 1000 characters");
+            }
+            
             // Validate request
             var validationResult = await _ingestValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
+                // Create a proper dictionary for validation errors
+                var errorDetails = new Dictionary<string, object>
+                {
+                    ["validation_errors"] = validationResult.Errors.Select(e => new Dictionary<string, object>
+                    {
+                        ["field"] = e.PropertyName,
+                        ["error"] = e.ErrorMessage,
+                        ["attempted_value"] = e.AttemptedValue?.ToString() ?? "null"
+                    }).ToList(),
+                    ["error_count"] = validationResult.Errors.Count
+                };
+
                 var validationResponse = StandardResponse<object>.CreateError(
                     "VALIDATION_ERROR",
                     "Request validation failed",
-                    validationResult.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
+                    errorDetails
                 );
+                
+                _logger.LogWarning("Validation failed for ingest request. Errors: {@ValidationErrors}", 
+                    validationResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }));
+                
                 return BadRequest(validationResponse);
             }
 
@@ -63,7 +96,7 @@ public class MemoryController : ControllerBase
             {
                 AutoSummarize = request.Options?.AutoSummarize ?? true,
                 ExtractRelationships = request.Options?.ExtractRelationships ?? true,
-                ChunkSize = request.Options?.ChunkSize ?? 1000
+                ChunkSize = 1000 // System-defined chunk size for optimal embedding performance
             };
             
             var result = await _memoryService.IngestDocumentsAsync(request.Documents!, ingestionOptions, cancellationToken);
@@ -407,8 +440,16 @@ public class MemoryController : ControllerBase
 
     public class IngestOptions
     {
+        /// <summary>
+        /// Whether to automatically generate document summaries
+        /// </summary>
+        [JsonPropertyName("autoSummarize")]
         public bool AutoSummarize { get; set; } = true;
+        
+        /// <summary>
+        /// Whether to extract relationships between entities
+        /// </summary>
+        [JsonPropertyName("extractRelationships")]
         public bool ExtractRelationships { get; set; } = true;
-        public int ChunkSize { get; set; } = 1000;
     }
 }

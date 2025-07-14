@@ -33,9 +33,9 @@ public class QdrantOptions
     public string CollectionName { get; set; } = "documents";
 
     /// <summary>
-    /// Vector size for embeddings (default: 768 for mxbai-embed-large)
+    /// Vector size for embeddings (default: 1024 for mxbai-embed-large)
     /// </summary>
-    public int VectorSize { get; set; } = 768;
+    public int VectorSize { get; set; } = 1024;
 
     /// <summary>
     /// Distance metric for similarity search (default: Cosine)

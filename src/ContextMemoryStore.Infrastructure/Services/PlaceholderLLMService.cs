@@ -10,8 +10,8 @@ public class PlaceholderLLMService : ILLMService
 {
     public Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
     {
-        // Return placeholder embedding (768 dimensions for mxbai-embed-large)
-        var embedding = new float[768];
+        // Return placeholder embedding (1024 dimensions for mxbai-embed-large)
+        var embedding = new float[1024];
         for (int i = 0; i < embedding.Length; i++)
         {
             embedding[i] = 0.1f; // Simple placeholder value
@@ -23,7 +23,7 @@ public class PlaceholderLLMService : ILLMService
     {
         var embeddings = texts.Select(_ =>
         {
-            var embedding = new float[768];
+            var embedding = new float[1024];
             for (int i = 0; i < embedding.Length; i++)
             {
                 embedding[i] = 0.1f; // Simple placeholder value
