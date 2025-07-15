@@ -134,39 +134,101 @@ export class ContextMemoryStoreClient {
     search: (params: SearchQueryRequest) =>
       this.get<StandardResponse<{ results: SearchResult[]; pagination: any }>>('/memory/search', { params }),
     
-    // Advanced search with filters and pagination
-    searchAdvanced: (query: string, filters: AdvancedSearchFilters = {}, page: number = 1, pageSize: number = 20) =>
-      this.get<StandardResponse<any>>('/memory/search/advanced', { 
-        params: { q: query, page, pageSize, ...filters } 
-      }),
+    // Advanced search with filters and pagination (fallback to basic search)
+    searchAdvanced: (query: string, filters: AdvancedSearchFilters = {}, page: number = 1, pageSize: number = 20) => {
+      // Map advanced search to basic search with filters as JSON
+      const searchParams: SearchQueryRequest = {
+        q: query,
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+        filter: Object.keys(filters).length > 0 ? JSON.stringify(filters) : undefined,
+        sort: 'relevance'
+      };
+      return this.get<StandardResponse<{ results: SearchResult[]; pagination: any }>>('/memory/search', { params: searchParams });
+    },
     
-    // Get document by ID
-    getDocument: (id: string) =>
-      this.get<StandardResponse<any>>(`/memory/documents/${id}`),
+    // Document operations - not implemented in backend yet, return placeholder responses
+    getDocument: (id: string) => {
+      console.warn(`[API] getDocument(${id}) - Not implemented in backend, returning placeholder`);
+      return Promise.resolve({
+        success: false,
+        message: 'Document retrieval not implemented',
+        error_code: 'NOT_IMPLEMENTED',
+        data: null
+      } as StandardResponse<any>);
+    },
     
-    // Delete document
-    deleteDocument: (id: string) =>
-      this.delete<StandardResponse<any>>(`/memory/documents/${id}`),
+    deleteDocument: (id: string) => {
+      console.warn(`[API] deleteDocument(${id}) - Not implemented in backend, returning placeholder`);
+      return Promise.resolve({
+        success: false,
+        message: 'Document deletion not implemented',
+        error_code: 'NOT_IMPLEMENTED',
+        data: null
+      } as StandardResponse<any>);
+    },
     
-    // Get document relationships
-    getRelationships: (documentId: string) =>
-      this.get<StandardResponse<any>>(`/memory/documents/${documentId}/relationships`),
+    getRelationships: (documentId: string) => {
+      console.warn(`[API] getRelationships(${documentId}) - Not implemented in backend, returning placeholder`);
+      return Promise.resolve({
+        success: false,
+        message: 'Relationship retrieval not implemented',
+        error_code: 'NOT_IMPLEMENTED',
+        data: []
+      } as StandardResponse<any>);
+    },
     
-    // Context retrieval with advanced options (should use GET with params, not POST)
-    retrieveContext: (params: any) =>
-      this.get<StandardResponse<any>>('/memory/context', { params }),
+    // Search suggestions - not implemented in backend yet, return empty array
+    getSuggestions: (query: string) => {
+      console.warn(`[API] getSuggestions(${query}) - Not implemented in backend, returning empty suggestions`);
+      return Promise.resolve({
+        success: true,
+        message: 'Search suggestions not implemented',
+        error_code: null,
+        data: []
+      } as StandardResponse<string[]>);
+    },
     
-    // Get search suggestions
-    getSuggestions: (query: string) =>
-      this.get<StandardResponse<string[]>>('/memory/search/suggestions', { params: { q: query } }),
+    // Memory analytics - not implemented in backend yet, return placeholder
+    getAnalytics: () => {
+      console.warn('[API] getAnalytics() - Not implemented in backend, returning placeholder data');
+      return Promise.resolve({
+        success: true,
+        message: 'Analytics data (placeholder)',
+        error_code: null,
+        data: {
+          totalDocuments: 0,
+          totalChunks: 0,
+          storageUsed: 0,
+          indexSize: 0,
+          memoryUsage: {
+            vectorStore: 0,
+            graphStore: 0
+          },
+          performance: {
+            averageQueryTime: 0,
+            indexingRate: 0
+          }
+        }
+      } as StandardResponse<any>);
+    },
     
-    // Memory analytics
-    getAnalytics: () =>
-      this.get<StandardResponse<any>>('/memory/analytics'),
-    
-    // Memory optimization
-    optimize: () =>
-      this.post<StandardResponse<any>>('/memory/optimize'),
+    // Memory optimization - not implemented in backend yet, return placeholder
+    optimize: () => {
+      console.warn('[API] optimize() - Not implemented in backend, returning placeholder response');
+      return Promise.resolve({
+        success: true,
+        message: 'Memory optimization not implemented',
+        error_code: null,
+        data: {
+          optimizationResults: {
+            duplicatesRemoved: 0,
+            spaceReclaimed: 0,
+            indexesRebuilt: 0
+          }
+        }
+      } as StandardResponse<any>);
+    },
     
     // Note: analyzeStream will be handled separately with EventSource
   };

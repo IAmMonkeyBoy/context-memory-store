@@ -156,7 +156,15 @@ const ContextRetrieval: React.FC<ContextRetrievalProps> = ({
         expandContext,
       };
       
-      const response = await api.memory.retrieveContext(contextQuery);
+      // Map to API request format
+      const apiRequest = {
+        q: contextQuery.query,
+        limit: contextQuery.maxDocuments,
+        includeRelationships: contextQuery.includeRelationships,
+        minScore: contextQuery.minRelevanceScore,
+      };
+      
+      const response = await api.memory.getContext(apiRequest);
       
       if (response.success && response.data) {
         setResults(response.data.results || []);

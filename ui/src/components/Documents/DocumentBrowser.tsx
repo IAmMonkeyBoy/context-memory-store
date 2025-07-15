@@ -266,10 +266,16 @@ const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     }
     
     try {
-      await api.memory.deleteDocument(documentId);
-      setDocuments(docs => docs.filter(doc => doc.id !== documentId));
-      setTotalCount(count => count - 1);
-      onDocumentDelete?.(documentId);
+      const response = await api.memory.deleteDocument(documentId);
+      if (response.success) {
+        setDocuments(docs => docs.filter(doc => doc.id !== documentId));
+        setTotalCount(count => count - 1);
+        onDocumentDelete?.(documentId);
+      } else if (response.error_code === 'NOT_IMPLEMENTED') {
+        setError('Document deletion is not yet implemented in the backend');
+      } else {
+        setError(response.message || 'Failed to delete document');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete document');
     }

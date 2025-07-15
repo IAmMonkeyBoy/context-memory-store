@@ -66,14 +66,14 @@ export interface IngestDocumentsRequest {
 }
 
 export interface ContextQueryRequest {
-  query: string;
+  q: string;
   limit: number;
   includeRelationships: boolean;
   minScore: number;
 }
 
 export interface SearchQueryRequest {
-  query: string;
+  q: string;
   limit: number;
   offset: number;
   filter?: string;
