@@ -8,7 +8,7 @@ namespace ContextMemoryStore.Api.Controllers;
 /// Controller for system diagnostics and troubleshooting
 /// </summary>
 [ApiController]
-[Route("api/v1/diagnostics")]
+[Route("v1/diagnostics")]
 [Produces("application/json")]
 public class DiagnosticsController : ControllerBase
 {
