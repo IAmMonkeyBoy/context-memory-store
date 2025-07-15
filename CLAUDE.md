@@ -46,11 +46,12 @@ The system uses a microservices architecture with:
 ## API Endpoints
 
 ### Core Lifecycle
-- `POST /start` - Initialize memory engine
-- `POST /stop` - Serialize memory and commit to Git
-- `GET /context` - Retrieve current memory snapshot
-- `POST /ingest` - Ingest new document or artifact
-- `GET /metrics` - Prometheus metrics endpoint
+- `POST /v1/lifecycle/start` - Initialize memory engine
+- `POST /v1/lifecycle/stop` - Serialize memory and commit to Git
+- `GET /v1/lifecycle/status` - Check current memory engine status
+- `POST /v1/memory/ingest` - Ingest new document or artifact
+- `GET /v1/memory/context` - Retrieve current memory snapshot
+- `GET /v1/metrics` - Prometheus metrics endpoint
 
 ### Interface Support
 - REST API via `/v1/...` endpoints
