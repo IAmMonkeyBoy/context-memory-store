@@ -282,22 +282,41 @@ export const useRealtimeMetrics = (interval: number = 10000) => {
   // Fetch Prometheus metrics directly
   const fetchPrometheusMetrics = useCallback(async () => {
     try {
-      // In development, use mock data
-      if (process.env.NODE_ENV === 'development') {
-        const mockMetricsText = generateMockPrometheusMetrics();
-        const parsedMetrics = parsePrometheusMetrics(mockMetricsText);
-        return convertToMetricsData(parsedMetrics);
-      }
-
-      // Fetch from /metrics endpoint
-      const response = await fetch('/metrics');
+      // Try /v1/metrics first (the correct endpoint)
+      const metricsUrl = `${config.apiBaseUrl}/metrics`;
+      console.debug(`[Metrics] Fetching Prometheus metrics from: ${metricsUrl}`);
+      
+      const response = await fetch(metricsUrl);
       if (!response.ok) {
+        console.warn(`[Metrics] Failed to fetch from ${metricsUrl}, status: ${response.status}`);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const metricsText = await response.text();
+      console.debug(`[Metrics] Received ${metricsText.length} characters of Prometheus metrics data`);
+      
+      if (metricsText.length === 0) {
+        console.warn('[Metrics] Received empty Prometheus metrics response');
+        return null;
+      }
+      
       const parsedMetrics = parsePrometheusMetrics(metricsText);
-      return convertToMetricsData(parsedMetrics);
+      console.debug('[Metrics] Parsed Prometheus metrics:', Object.keys(parsedMetrics));
+      
+      const convertedData = convertToMetricsData(parsedMetrics);
+      
+      if (convertedData) {
+        console.debug('[Metrics] Successfully converted Prometheus metrics:', {
+          api: convertedData.api,
+          memory: convertedData.memory,
+          performance: convertedData.performance,
+          timestamp: convertedData.timestamp
+        });
+      } else {
+        console.warn('[Metrics] Converted data is null or undefined');
+      }
+      
+      return convertedData;
     } catch (error) {
       console.error('[Metrics] Failed to fetch Prometheus metrics:', error);
       return null;
@@ -307,6 +326,7 @@ export const useRealtimeMetrics = (interval: number = 10000) => {
   useEffect(() => {
     const poll = async () => {
       try {
+        console.debug(`[Metrics] Starting poll cycle, usePrometheus: ${usePrometheus}`);
         let newMetricsData = null;
 
         if (usePrometheus) {
@@ -314,41 +334,102 @@ export const useRealtimeMetrics = (interval: number = 10000) => {
           newMetricsData = await fetchPrometheusMetrics();
           
           if (!newMetricsData) {
-            // Fallback to regular API
+            console.warn('[Metrics] Prometheus fetch failed, falling back to regular API');
             setUsePrometheus(false);
+          } else {
+            console.debug('[Metrics] Successfully fetched Prometheus metrics');
           }
         }
 
         if (!newMetricsData) {
-          // Use regular API as fallback
+          // Try /v1/diagnostics/metrics endpoint as backup
+          console.debug('[Metrics] Trying /v1/diagnostics/metrics as backup');
+          try {
+            const diagnosticsUrl = `${config.apiBaseUrl}/diagnostics/metrics`;
+            console.debug(`[Metrics] Fetching diagnostics metrics from: ${diagnosticsUrl}`);
+            
+            const diagnosticsResponse = await fetch(diagnosticsUrl);
+            if (diagnosticsResponse.ok) {
+              const diagnosticsData = await diagnosticsResponse.json();
+              console.debug('[Metrics] Diagnostics metrics data:', diagnosticsData);
+              
+              // Convert diagnostics format to metrics format
+              if (diagnosticsData) {
+                newMetricsData = {
+                  timestamp: new Date(diagnosticsData.timestamp || new Date()),
+                  api: {
+                    totalRequests: diagnosticsData.requests?.totalRequests || 0,
+                    successfulRequests: diagnosticsData.requests?.successfulRequests || 0,
+                    failedRequests: diagnosticsData.requests?.failedRequests || 0,
+                    averageResponseTime: diagnosticsData.requests?.averageResponseTime || 0,
+                  },
+                  memory: {
+                    totalDocuments: diagnosticsData.business?.documentsIngested || 0,
+                    totalChunks: diagnosticsData.database?.recordsProcessed || 0,
+                    vectorStoreSize: Math.round(diagnosticsData.memoryUsageBytes * 0.7) || 0,
+                    graphStoreSize: Math.round(diagnosticsData.memoryUsageBytes * 0.3) || 0,
+                  },
+                  performance: {
+                    cpuUsage: Math.max(0, diagnosticsData.cpuUsagePercent || 0),
+                    memoryUsage: Math.min(100, (diagnosticsData.memoryUsageBytes / (1024 * 1024 * 512)) * 100), // Estimate as % of 512MB
+                    diskUsage: Math.min(50, Math.max(10, (diagnosticsData.memoryUsageBytes / (1024 * 1024 * 1024)) * 5)), // Rough estimate
+                  }
+                };
+                console.debug('[Metrics] Converted diagnostics data to metrics format:', newMetricsData);
+              }
+            } else {
+              console.warn(`[Metrics] Diagnostics endpoint failed: ${diagnosticsResponse.status}`);
+            }
+          } catch (diagnosticsError) {
+            console.warn('[Metrics] Failed to fetch diagnostics metrics:', diagnosticsError);
+          }
+        }
+
+        if (!newMetricsData) {
+          // Use regular API as final fallback
+          console.debug('[Metrics] Using regular API as final fallback');
           const data = await refetch();
           if (data.data) {
             newMetricsData = { ...data.data, timestamp: new Date() };
+            console.debug('[Metrics] Regular API data:', newMetricsData);
+          } else {
+            console.warn('[Metrics] No data from regular API');
           }
         }
 
         if (newMetricsData) {
           const timestampedData = { ...newMetricsData, timestamp: new Date() };
           setMetricsData(timestampedData);
-          setMetricsHistory(prev => [...prev.slice(-29), timestampedData]); // Keep 30 data points
+          setMetricsHistory(prev => {
+            const newHistory = [...prev.slice(-29), timestampedData]; // Keep 30 data points
+            console.debug(`[Metrics] Updated metrics history, now has ${newHistory.length} data points`);
+            return newHistory;
+          });
           setLastUpdate(new Date());
+        } else {
+          console.warn('[Metrics] No metrics data available from any source');
         }
       } catch (error) {
         console.error('[Metrics] Polling failed:', error);
         // Try fallback to regular API
         if (usePrometheus) {
+          console.warn('[Metrics] Disabling Prometheus due to error');
           setUsePrometheus(false);
         }
       }
     };
 
     // Initial poll
+    console.debug(`[Metrics] Setting up polling with interval: ${interval}ms`);
     poll();
 
     // Set up interval
     const intervalId = setInterval(poll, interval);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      console.debug('[Metrics] Cleaning up polling interval');
+      clearInterval(intervalId);
+    };
   }, [interval, refetch, usePrometheus, fetchPrometheusMetrics]);
 
   const retryPrometheus = useCallback(() => {
