@@ -1,5 +1,7 @@
 # Context & Memory Management System for AI Coding Agents
 
+STATUS:  As with so many AI agent projects, this was overtaken by someone else doing something better first.  As such this project will probably not receive any updates.
+
 This project provides a containerized solution for managing project-specific context and memory in support of AI coding agents. It is designed for local research and lab setups, enabling easy inspection, reproducibility, and full lifecycle control of context state.
 
 Each container instance maps 1:1 with a single project, and provides:
@@ -354,5 +356,6 @@ Phase 7 creates a comprehensive web-based user interface that provides complete 
 - MCP (Model Context Protocol) integration
 - Multi-tenant and enterprise features
 - Data Format Specifications (Git-friendly file formats)
+
 
 ---
