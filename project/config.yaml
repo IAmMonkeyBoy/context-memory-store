@@ -45,7 +45,7 @@ graph_store:
   # Neo4j connection details (can be overridden via environment variables)
   uri: "bolt://localhost:7687"
   username: "neo4j"  # Override with GRAPH_STORE_USERNAME
-  password: "contextmemory"  # Override with GRAPH_STORE_PASSWORD
+  password: "${GRAPH_STORE_PASSWORD:-contextmemory}"
   # Database name
   database: "neo4j"
   # Path to local graph backup
